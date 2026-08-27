@@ -1,6 +1,6 @@
 import uuid
 from datetime import datetime, timezone
-from typing import List, Optional, Tuple
+from typing import List, Optional, Tuple, Dict, Any
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select, and_, desc, func
 
@@ -19,8 +19,16 @@ from app.models.audit import AuditLog
 from ai.ocr.engine import OCREngine
 from ai.ocr.extractor import LabReportExtractor
 from ai.ocr.reference_ranges import evaluate_flag
+from ai.extraction.report_analyzer import ReportAnalyzer
 from app.modules.timeline.service import TimelineService
-from app.modules.reports.schemas import ConfirmReportRequest
+from app.modules.reports.schemas import (
+    ConfirmReportRequest,
+    ReportExplanationResponse,
+    HistoricalComparisonResponse,
+    ParameterComparisonItem,
+    ParameterHistoryResponse,
+    ParameterHistoryPoint,
+)
 
 class OcrService:
     def __init__(self, db: AsyncSession):
@@ -34,7 +42,6 @@ class OcrService:
         report_type_hint: Optional[ReportTypeEnum] = None,
     ) -> MedicalReport:
         """Run OCR, extract structured clinical fields, and create pending review items."""
-        # 1. Fetch document
         doc_q = select(MedicalDocument).where(
             and_(MedicalDocument.id == document_id, MedicalDocument.user_id == user_id)
         )
@@ -43,7 +50,6 @@ class OcrService:
         if not doc:
             raise NotFoundException("MedicalDocument", document_id)
 
-        # Check if already processed
         rep_q = select(MedicalReport).where(MedicalReport.document_id == document_id)
         rep_res = await self.db.execute(rep_q)
         existing_rep = rep_res.scalar_one_or_none()
@@ -53,14 +59,10 @@ class OcrService:
         doc.status = DocumentStatusEnum.PROCESSING_OCR
         await self.db.flush()
 
-        # 2. Extract raw text
         raw_text = OCREngine.extract_text_from_file(doc.file_path, doc.mime_type)
-
-        # 3. Extract structured candidate fields
         extracted_data = LabReportExtractor.extract_fields(raw_text, report_type_hint)
         inferred_type = report_type_hint or LabReportExtractor.infer_report_type(extracted_data, raw_text)
 
-        # 4. Create MedicalReport record
         report = MedicalReport(
             user_id=user_id,
             document_id=document_id,
@@ -72,7 +74,6 @@ class OcrService:
         self.db.add(report)
         await self.db.flush()
 
-        # 5. Create ReportExtractionItem records
         for item in extracted_data:
             ext_item = ReportExtractionItem(
                 report_id=report.id,
@@ -92,7 +93,6 @@ class OcrService:
         doc.status = DocumentStatusEnum.EXTRACTED
         await self.db.flush()
 
-        # Re-fetch with relationships loaded
         q = select(MedicalReport).where(MedicalReport.id == report.id)
         res = await self.db.execute(q)
         return res.scalar_one()
@@ -121,7 +121,6 @@ class OcrService:
         if req.notes:
             report.summary_notes = req.notes.strip()
 
-        # Map confirmed items
         confirm_map = {item.extraction_id: item for item in req.confirmed_items}
         confirmed_metrics_count = 0
 
@@ -137,14 +136,12 @@ class OcrService:
                 if round(c_payload.confirmed_value, 2) != round(ext.detected_value, 2):
                     ext.user_corrected = True
 
-                # Re-evaluate flag on confirmed value
                 ext.flag_status = evaluate_flag(
                     c_payload.confirmed_value,
                     ext.reference_range_low,
                     ext.reference_range_high,
                 )
 
-                # Persist confirmed clinical value to health_metrics
                 if ext.metric_type:
                     metric = HealthMetric(
                         user_id=user_id,
@@ -162,7 +159,6 @@ class OcrService:
         report.status = ExtractionStatusEnum.CONFIRMED
         await self.db.flush()
 
-        # Record confirmation in Health Timeline
         await self.timeline_service.record_event(
             user_id=user_id,
             category=TimelineCategoryEnum.CLINICAL,
@@ -175,7 +171,6 @@ class OcrService:
             metadata_info={"report_id": str(report.id), "metrics_synced": confirmed_metrics_count},
         )
 
-        # Audit Log
         audit = AuditLog(
             user_id=user_id,
             action="REPORT_CONFIRMED",
@@ -188,10 +183,131 @@ class OcrService:
 
         return report
 
+    async def get_report_explanation(self, user_id: uuid.UUID, report_id: uuid.UUID) -> ReportExplanationResponse:
+        """Generate educational, plain-language breakdown of report results with safety disclaimers."""
+        report = await self.get_report_by_id(user_id, report_id)
+        items_dict = [
+            {
+                "test_name": e.test_name,
+                "detected_value": e.detected_value,
+                "confirmed_value": e.confirmed_value,
+                "unit": e.unit,
+                "reference_range_low": e.reference_range_low,
+                "reference_range_high": e.reference_range_high,
+                "flag_status": e.flag_status.value if hasattr(e.flag_status, "value") else str(e.flag_status),
+            }
+            for e in report.extractions
+        ]
+
+        explanation_data = ReportAnalyzer.generate_explanation(
+            report_type=report.report_type.value if hasattr(report.report_type, "value") else str(report.report_type),
+            current_items=items_dict,
+        )
+
+        return ReportExplanationResponse(**explanation_data)
+
+    async def get_historical_comparison(
+        self, user_id: uuid.UUID, report_id: uuid.UUID
+    ) -> HistoricalComparisonResponse:
+        """Compare current report against the immediately preceding report of the same type."""
+        current_report = await self.get_report_by_id(user_id, report_id)
+
+        # Query preceding report of matching type
+        prev_q = select(MedicalReport).where(
+            and_(
+                MedicalReport.user_id == user_id,
+                MedicalReport.report_type == current_report.report_type,
+                MedicalReport.created_at < current_report.created_at,
+                MedicalReport.status == ExtractionStatusEnum.CONFIRMED,
+            )
+        ).order_by(desc(MedicalReport.created_at)).limit(1)
+
+        prev_res = await self.db.execute(prev_q)
+        prev_report = prev_res.scalar_one_or_none()
+
+        if not prev_report or not prev_report.extractions:
+            return HistoricalComparisonResponse(
+                current_report_id=current_report.id,
+                previous_report_id=None,
+                report_type=current_report.report_type.value if hasattr(current_report.report_type, "value") else str(current_report.report_type),
+                has_previous_report=False,
+                parameters_compared=[],
+            )
+
+        cur_items = [
+            {
+                "test_name": e.test_name,
+                "detected_value": e.detected_value,
+                "confirmed_value": e.confirmed_value,
+                "unit": e.unit,
+                "flag_status": e.flag_status.value if hasattr(e.flag_status, "value") else str(e.flag_status),
+            }
+            for e in current_report.extractions
+        ]
+
+        prev_items = [
+            {
+                "test_name": e.test_name,
+                "detected_value": e.detected_value,
+                "confirmed_value": e.confirmed_value,
+                "unit": e.unit,
+                "flag_status": e.flag_status.value if hasattr(e.flag_status, "value") else str(e.flag_status),
+            }
+            for e in prev_report.extractions
+        ]
+
+        raw_comparisons = ReportAnalyzer.compare_reports(cur_items, prev_items)
+        compared_items = [ParameterComparisonItem(**c) for c in raw_comparisons]
+
+        return HistoricalComparisonResponse(
+            current_report_id=current_report.id,
+            previous_report_id=prev_report.id,
+            report_type=current_report.report_type.value if hasattr(current_report.report_type, "value") else str(current_report.report_type),
+            has_previous_report=True,
+            parameters_compared=compared_items,
+        )
+
+    async def get_parameter_history(
+        self, user_id: uuid.UUID, test_name: str
+    ) -> ParameterHistoryResponse:
+        """Fetch historical points for a specific lab parameter across all reports."""
+        query = select(ReportExtractionItem, MedicalReport).join(
+            MedicalReport, ReportExtractionItem.report_id == MedicalReport.id
+        ).where(
+            and_(
+                MedicalReport.user_id == user_id,
+                func.lower(ReportExtractionItem.test_name) == test_name.lower().strip(),
+            )
+        ).order_by(MedicalReport.created_at.asc())
+
+        result = await self.db.execute(query)
+        rows = result.all()
+
+        points: List[ParameterHistoryPoint] = []
+        unit = ""
+        for ext, rep in rows:
+            val = ext.confirmed_value if ext.confirmed_value is not None else ext.detected_value
+            unit = ext.unit
+            points.append(
+                ParameterHistoryPoint(
+                    report_id=rep.id,
+                    report_date=rep.report_date,
+                    created_at=rep.created_at,
+                    value=val,
+                    unit=ext.unit,
+                    flag_status=ext.flag_status.value if hasattr(ext.flag_status, "value") else str(ext.flag_status),
+                )
+            )
+
+        return ParameterHistoryResponse(
+            test_name=test_name,
+            unit=unit,
+            data_points=points,
+        )
+
     async def list_reports(
         self, user_id: uuid.UUID, limit: int = 50, offset: int = 0
     ) -> Tuple[List[MedicalReport], int]:
-        """List user's medical reports."""
         query = select(MedicalReport).where(MedicalReport.user_id == user_id)
         count_q = select(func.count()).select_from(query.subquery())
         count_res = await self.db.execute(count_q)
