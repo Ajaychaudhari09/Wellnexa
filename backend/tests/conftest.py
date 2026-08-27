@@ -5,13 +5,12 @@ from typing import AsyncGenerator
 from httpx import AsyncClient, ASGITransport
 from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession, async_sessionmaker
 from sqlalchemy.pool import StaticPool
-from sqlalchemy import text
+from sqlalchemy import select
 
 from app.main import app
 from app.core.database import Base, get_db
-from app.core.config import settings
+import app.models  # Ensure all models are registered in Base.metadata
 
-# Test in-memory SQLite for isolated local unit testing where Postgres is not running
 TEST_DATABASE_URL = "sqlite+aiosqlite:///:memory:"
 
 test_engine = create_async_engine(

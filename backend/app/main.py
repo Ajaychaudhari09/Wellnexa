@@ -5,14 +5,14 @@ from fastapi.responses import JSONResponse
 from app.core.config import settings
 from app.core.exceptions import WellNexaException
 from app.modules.health.router import router as health_router
+from app.modules.auth.router import router as auth_router
+from app.modules.profile.router import router as profile_router
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     """Application startup and shutdown lifespan events."""
-    # Startup actions
     print(f"🚀 [WellNexa AI] Initializing backend services in {settings.ENVIRONMENT} mode...")
     yield
-    # Shutdown actions
     print("🛑 [WellNexa AI] Shutting down backend services...")
 
 app = FastAPI(
@@ -49,8 +49,10 @@ async def generic_exception_handler(request: Request, exc: Exception):
         content={"success": False, "message": "An internal server error occurred.", "data": None, "errors": [str(exc)]},
     )
 
-# Include API Routers
+# Include API Domain Routers
 app.include_router(health_router, prefix=settings.API_V1_STR)
+app.include_router(auth_router, prefix=settings.API_V1_STR)
+app.include_router(profile_router, prefix=settings.API_V1_STR)
 
 @app.get("/")
 async def root():
