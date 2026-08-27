@@ -12,6 +12,7 @@ from app.modules.health.health_profile_router import router as health_profile_ro
 from app.modules.timeline.router import router as timeline_router
 from app.modules.documents.router import router as documents_router
 from app.modules.reports.router import router as reports_router
+from app.modules.medicines.router import router as medicines_router
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -63,6 +64,7 @@ app.include_router(health_profile_router, prefix=settings.API_V1_STR)
 app.include_router(timeline_router, prefix=settings.API_V1_STR)
 app.include_router(documents_router, prefix=settings.API_V1_STR)
 app.include_router(reports_router, prefix=settings.API_V1_STR)
+app.include_router(medicines_router, prefix=settings.API_V1_STR)
 
 @app.get("/")
 async def root():

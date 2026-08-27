@@ -33,6 +33,16 @@ from app.models.report import (
     ExtractionStatusEnum,
     FlagStatusEnum,
 )
+from app.models.medicine import (
+    Prescription,
+    Medication,
+    MedicationSchedule,
+    MedicationLog,
+    MedicationFormEnum,
+    FrequencyEnum,
+    TimingEnum,
+    DoseStatusEnum,
+)
 
 __all__ = [
     "Base",
@@ -68,4 +78,12 @@ __all__ = [
     "ReportTypeEnum",
     "ExtractionStatusEnum",
     "FlagStatusEnum",
+    "Prescription",
+    "Medication",
+    "MedicationSchedule",
+    "MedicationLog",
+    "MedicationFormEnum",
+    "FrequencyEnum",
+    "TimingEnum",
+    "DoseStatusEnum",
 ]
