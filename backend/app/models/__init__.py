@@ -16,6 +16,11 @@ from app.models.health import (
     GoalStatusEnum,
     LifestyleProfile,
 )
+from app.models.timeline import (
+    HealthTimelineEvent,
+    TimelineCategoryEnum,
+    TimelineEventTypeEnum,
+)
 
 __all__ = [
     "Base",
@@ -40,4 +45,7 @@ __all__ = [
     "HealthGoal",
     "GoalStatusEnum",
     "LifestyleProfile",
+    "HealthTimelineEvent",
+    "TimelineCategoryEnum",
+    "TimelineEventTypeEnum",
 ]

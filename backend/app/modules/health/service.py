@@ -14,7 +14,8 @@ from app.models.health import (
     HealthGoal,
     LifestyleProfile,
 )
-from app.models.audit import AuditLog
+from app.models.timeline import TimelineCategoryEnum, TimelineEventTypeEnum
+from app.modules.timeline.service import TimelineService
 from app.modules.health.schemas import (
     MetricCreateItem,
     MetricTrendResponse,
@@ -34,6 +35,7 @@ from app.modules.health.schemas import (
 class HealthMetricService:
     def __init__(self, db: AsyncSession):
         self.db = db
+        self.timeline_service = TimelineService(db)
 
     async def log_metrics(self, user_id: uuid.UUID, items: List[MetricCreateItem]) -> List[HealthMetric]:
         """Log one or multiple health metrics and auto-compute BMI if weight/height are provided."""
@@ -56,6 +58,20 @@ class HealthMetricService:
             self.db.add(metric)
             created_metrics.append(metric)
 
+            # Record timeline event for vitals
+            m_name = item.metric_type.value.replace("_", " ").title()
+            await self.timeline_service.record_event(
+                user_id=user_id,
+                category=TimelineCategoryEnum.CLINICAL,
+                event_type=TimelineEventTypeEnum.METRIC_LOGGED,
+                title=f"{m_name} Logged",
+                summary=f"Recorded {m_name}: {item.value} {item.unit}",
+                occurred_at=recorded_at,
+                reference_id=str(metric.id),
+                reference_type="health_metric",
+                metadata_info={"metric_type": item.metric_type.value, "value": item.value, "unit": item.unit},
+            )
+
             if item.metric_type == MetricTypeEnum.WEIGHT:
                 weight_val = item.value
             elif item.metric_type == MetricTypeEnum.HEIGHT:
@@ -73,7 +89,6 @@ class HealthMetricService:
         self, user_id: uuid.UUID, weight_val: Optional[float], height_val: Optional[float]
     ) -> Optional[HealthMetric]:
         """Retrieve most recent weight and height to compute and persist BMI."""
-        # Find latest weight if not in current batch
         if weight_val is None:
             w_q = select(HealthMetric).where(
                 and_(HealthMetric.user_id == user_id, HealthMetric.metric_type == MetricTypeEnum.WEIGHT)
@@ -83,7 +98,6 @@ class HealthMetricService:
             if w_metric:
                 weight_val = w_metric.value
 
-        # Find latest height if not in current batch
         if height_val is None:
             h_q = select(HealthMetric).where(
                 and_(HealthMetric.user_id == user_id, HealthMetric.metric_type == MetricTypeEnum.HEIGHT)
@@ -94,21 +108,35 @@ class HealthMetricService:
                 height_val = h_metric.value
 
         if weight_val and height_val and height_val > 0:
-            # Convert height in cm to meters if needed
             height_in_m = height_val / 100.0 if height_val > 3.0 else height_val
             bmi_val = round(weight_val / (height_in_m ** 2), 2)
+            now = datetime.now(timezone.utc)
 
             bmi_metric = HealthMetric(
                 user_id=user_id,
                 metric_type=MetricTypeEnum.BMI,
                 value=bmi_val,
                 unit="kg/m²",
-                recorded_at=datetime.now(timezone.utc),
+                recorded_at=now,
                 source=MetricSourceEnum.SYSTEM_CALCULATED,
                 notes=f"Auto-calculated from weight ({weight_val} kg) and height ({height_val} {'cm' if height_val > 3 else 'm'})",
             )
             self.db.add(bmi_metric)
             await self.db.flush()
+
+            # Record timeline event for BMI update
+            await self.timeline_service.record_event(
+                user_id=user_id,
+                category=TimelineCategoryEnum.CLINICAL,
+                event_type=TimelineEventTypeEnum.METRIC_LOGGED,
+                title="BMI Updated",
+                summary=f"BMI automatically computed: {bmi_val} kg/m²",
+                occurred_at=now,
+                reference_id=str(bmi_metric.id),
+                reference_type="health_metric",
+                metadata_info={"bmi": bmi_val, "weight": weight_val, "height": height_val},
+            )
+
             return bmi_metric
 
         return None
@@ -122,7 +150,6 @@ class HealthMetricService:
         limit: int = 100,
         offset: int = 0,
     ) -> List[HealthMetric]:
-        """Retrieve metrics with user scoping and optional type and date filters."""
         query = select(HealthMetric).where(HealthMetric.user_id == user_id)
         if metric_type:
             query = query.where(HealthMetric.metric_type == metric_type)
@@ -138,7 +165,6 @@ class HealthMetricService:
     async def get_metric_trends(
         self, user_id: uuid.UUID, metric_type: MetricTypeEnum, days: int = 30
     ) -> MetricTrendResponse:
-        """Aggregate historical metric trend series and summary stats."""
         since_time = datetime.now(timezone.utc) - timedelta(days=days)
         query = select(HealthMetric).where(
             and_(
@@ -179,7 +205,6 @@ class HealthMetricService:
         )
 
     async def delete_metric(self, user_id: uuid.UUID, metric_id: uuid.UUID) -> None:
-        """Delete a metric ensuring user boundary ownership."""
         query = select(HealthMetric).where(
             and_(HealthMetric.id == metric_id, HealthMetric.user_id == user_id)
         )
@@ -194,6 +219,7 @@ class HealthMetricService:
 class HealthProfileService:
     def __init__(self, db: AsyncSession):
         self.db = db
+        self.timeline_service = TimelineService(db)
 
     # Allergies
     async def create_allergy(self, user_id: uuid.UUID, req: AllergyCreateRequest) -> Allergy:
@@ -206,6 +232,18 @@ class HealthProfileService:
         )
         self.db.add(allergy)
         await self.db.flush()
+
+        # Timeline event
+        await self.timeline_service.record_event(
+            user_id=user_id,
+            category=TimelineCategoryEnum.CLINICAL,
+            event_type=TimelineEventTypeEnum.SYSTEM_NOTICE,
+            title="Allergy Added",
+            summary=f"Allergy to {req.allergen} ({req.severity.value}) recorded.",
+            reference_id=str(allergy.id),
+            reference_type="allergy",
+        )
+
         return allergy
 
     async def get_allergies(self, user_id: uuid.UUID) -> List[Allergy]:
@@ -233,6 +271,18 @@ class HealthProfileService:
         )
         self.db.add(condition)
         await self.db.flush()
+
+        # Timeline event
+        await self.timeline_service.record_event(
+            user_id=user_id,
+            category=TimelineCategoryEnum.CLINICAL,
+            event_type=TimelineEventTypeEnum.SYSTEM_NOTICE,
+            title="Medical Condition Logged",
+            summary=f"Condition: {req.condition_name} ({req.status.value})",
+            reference_id=str(condition.id),
+            reference_type="medical_condition",
+        )
+
         return condition
 
     async def get_conditions(self, user_id: uuid.UUID) -> List[MedicalCondition]:
@@ -265,6 +315,18 @@ class HealthProfileService:
         )
         self.db.add(goal)
         await self.db.flush()
+
+        # Timeline event
+        await self.timeline_service.record_event(
+            user_id=user_id,
+            category=TimelineCategoryEnum.FITNESS,
+            event_type=TimelineEventTypeEnum.GOAL_ACHIEVED if req.status == "ACHIEVED" else TimelineEventTypeEnum.SYSTEM_NOTICE,
+            title=f"Health Goal: {req.title}",
+            summary=f"Target: {req.target_value} {req.unit}",
+            reference_id=str(goal.id),
+            reference_type="health_goal",
+        )
+
         return goal
 
     async def get_goals(self, user_id: uuid.UUID) -> List[HealthGoal]:
@@ -312,7 +374,6 @@ class HealthProfileService:
 
     # Unified Health Summary
     async def get_unified_summary(self, user_id: uuid.UUID) -> UnifiedHealthSummaryResponse:
-        """Fetch latest vitals, BMI, active allergies, conditions, goals, and lifestyle."""
         async def get_latest_metric(m_type: MetricTypeEnum) -> Optional[MetricResponse]:
             q = select(HealthMetric).where(
                 and_(HealthMetric.user_id == user_id, HealthMetric.metric_type == m_type)
