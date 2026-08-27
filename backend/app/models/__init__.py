@@ -21,6 +21,11 @@ from app.models.timeline import (
     TimelineCategoryEnum,
     TimelineEventTypeEnum,
 )
+from app.models.document import (
+    MedicalDocument,
+    DocumentCategoryEnum,
+    DocumentStatusEnum,
+)
 
 __all__ = [
     "Base",
@@ -48,4 +53,7 @@ __all__ = [
     "HealthTimelineEvent",
     "TimelineCategoryEnum",
     "TimelineEventTypeEnum",
+    "MedicalDocument",
+    "DocumentCategoryEnum",
+    "DocumentStatusEnum",
 ]

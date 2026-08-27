@@ -47,6 +47,7 @@ class User(Base, UUIDMixin, TimestampMixin):
     conditions: Mapped[List["MedicalCondition"]] = relationship("MedicalCondition", back_populates="user", cascade="all, delete-orphan")
     goals: Mapped[List["HealthGoal"]] = relationship("HealthGoal", back_populates="user", cascade="all, delete-orphan")
     timeline_events: Mapped[List["HealthTimelineEvent"]] = relationship("HealthTimelineEvent", back_populates="user", cascade="all, delete-orphan")
+    documents: Mapped[List["MedicalDocument"]] = relationship("MedicalDocument", back_populates="user", cascade="all, delete-orphan")
 
     def has_role(self, role_name: Union[str, RoleEnum]) -> bool:
         target = role_name.value if isinstance(role_name, RoleEnum) else str(role_name)
