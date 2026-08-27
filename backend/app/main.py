@@ -7,6 +7,8 @@ from app.core.exceptions import WellNexaException
 from app.modules.health.router import router as health_router
 from app.modules.auth.router import router as auth_router
 from app.modules.profile.router import router as profile_router
+from app.modules.health.metrics_router import router as metrics_router
+from app.modules.health.health_profile_router import router as health_profile_router
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -53,6 +55,8 @@ async def generic_exception_handler(request: Request, exc: Exception):
 app.include_router(health_router, prefix=settings.API_V1_STR)
 app.include_router(auth_router, prefix=settings.API_V1_STR)
 app.include_router(profile_router, prefix=settings.API_V1_STR)
+app.include_router(metrics_router, prefix=settings.API_V1_STR)
+app.include_router(health_profile_router, prefix=settings.API_V1_STR)
 
 @app.get("/")
 async def root():

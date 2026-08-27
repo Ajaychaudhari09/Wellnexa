@@ -4,6 +4,18 @@ from app.models.user import User, Role, RoleEnum, user_roles
 from app.models.token import RefreshToken
 from app.models.profile import Profile, GenderEnum, BloodGroupEnum
 from app.models.audit import AuditLog
+from app.models.health import (
+    HealthMetric,
+    MetricTypeEnum,
+    MetricSourceEnum,
+    Allergy,
+    AllergySeverityEnum,
+    MedicalCondition,
+    ConditionStatusEnum,
+    HealthGoal,
+    GoalStatusEnum,
+    LifestyleProfile,
+)
 
 __all__ = [
     "Base",
@@ -18,4 +30,14 @@ __all__ = [
     "GenderEnum",
     "BloodGroupEnum",
     "AuditLog",
+    "HealthMetric",
+    "MetricTypeEnum",
+    "MetricSourceEnum",
+    "Allergy",
+    "AllergySeverityEnum",
+    "MedicalCondition",
+    "ConditionStatusEnum",
+    "HealthGoal",
+    "GoalStatusEnum",
+    "LifestyleProfile",
 ]

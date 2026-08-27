@@ -39,8 +39,13 @@ class User(Base, UUIDMixin, TimestampMixin):
     # Relationships
     roles: Mapped[List[Role]] = relationship("Role", secondary=user_roles, back_populates="users", lazy="selectin")
     profile: Mapped[Optional["Profile"]] = relationship("Profile", back_populates="user", uselist=False, cascade="all, delete-orphan", lazy="selectin")
+    lifestyle: Mapped[Optional["LifestyleProfile"]] = relationship("LifestyleProfile", back_populates="user", uselist=False, cascade="all, delete-orphan", lazy="selectin")
     refresh_tokens: Mapped[List["RefreshToken"]] = relationship("RefreshToken", back_populates="user", cascade="all, delete-orphan")
     audit_logs: Mapped[List["AuditLog"]] = relationship("AuditLog", back_populates="user", cascade="all, delete-orphan")
+    metrics: Mapped[List["HealthMetric"]] = relationship("HealthMetric", back_populates="user", cascade="all, delete-orphan")
+    allergies: Mapped[List["Allergy"]] = relationship("Allergy", back_populates="user", cascade="all, delete-orphan")
+    conditions: Mapped[List["MedicalCondition"]] = relationship("MedicalCondition", back_populates="user", cascade="all, delete-orphan")
+    goals: Mapped[List["HealthGoal"]] = relationship("HealthGoal", back_populates="user", cascade="all, delete-orphan")
 
     def has_role(self, role_name: Union[str, RoleEnum]) -> bool:
         target = role_name.value if isinstance(role_name, RoleEnum) else str(role_name)
