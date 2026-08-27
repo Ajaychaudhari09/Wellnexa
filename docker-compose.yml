@@ -1,0 +1,47 @@
+services:
+  postgres:
+    image: pgvector/pgvector:pg16
+    container_name: wellnexa_postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-wellnexa}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-wellnexa_secure_password}
+      POSTGRES_DB: ${POSTGRES_DB:-wellnexa_db}
+    ports:
+      - "${POSTGRES_PORT:-5432}:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./infra/docker/init-db.sql:/docker-entrypoint-initdb.d/init-db.sql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-wellnexa} -d ${POSTGRES_DB:-wellnexa_db}"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: wellnexa_backend
+    restart: unless-stopped
+    command: uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
+    volumes:
+      - ./backend:/app
+      - ./storage:/app/storage
+    ports:
+      - "8000:8000"
+    environment:
+      - ENVIRONMENT=development
+      - DEBUG=True
+      - DATABASE_URL=postgresql+asyncpg://${POSTGRES_USER:-wellnexa}:${POSTGRES_PASSWORD:-wellnexa_secure_password}@postgres:5432/${POSTGRES_DB:-wellnexa_db}
+      - SYNC_DATABASE_URL=postgresql://${POSTGRES_USER:-wellnexa}:${POSTGRES_PASSWORD:-wellnexa_secure_password}@postgres:5432/${POSTGRES_DB:-wellnexa_db}
+      - SECRET_KEY=${SECRET_KEY:-change_this_to_a_very_secure_random_secret_key_in_production_min_32_chars}
+      - UPLOAD_DIR=/app/storage/uploads
+      - LLM_PROVIDER=${LLM_PROVIDER:-mock}
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+volumes:
+  postgres_data:
+    driver: local
