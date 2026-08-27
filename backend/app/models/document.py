@@ -29,14 +29,15 @@ class MedicalDocument(Base, UUIDMixin, TimestampMixin):
     category: Mapped[DocumentCategoryEnum] = mapped_column(Enum(DocumentCategoryEnum, name="document_category_enum", native_enum=False), default=DocumentCategoryEnum.MEDICAL_REPORT, nullable=False, index=True)
     status: Mapped[DocumentStatusEnum] = mapped_column(Enum(DocumentStatusEnum, name="document_status_enum", native_enum=False), default=DocumentStatusEnum.UPLOADED, nullable=False, index=True)
     title: Mapped[str] = mapped_column(String(200), nullable=False)
-    file_name: Mapped[str] = mapped_column(String(255), nullable=False) # Internal stored name (e.g. uuid.pdf)
-    original_file_name: Mapped[str] = mapped_column(String(255), nullable=False) # Original uploaded filename
+    file_name: Mapped[str] = mapped_column(String(255), nullable=False)
+    original_file_name: Mapped[str] = mapped_column(String(255), nullable=False)
     file_size_bytes: Mapped[int] = mapped_column(Integer, nullable=False)
     mime_type: Mapped[str] = mapped_column(String(100), nullable=False)
-    file_path: Mapped[str] = mapped_column(String(500), nullable=False) # Internal storage path
+    file_path: Mapped[str] = mapped_column(String(500), nullable=False)
     checksum_sha256: Mapped[str] = mapped_column(String(64), nullable=False, index=True)
     uploaded_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=lambda: datetime.now(timezone.utc), nullable=False, index=True)
     notes: Mapped[Optional[str]] = mapped_column(String(500), nullable=True)
     metadata_info: Mapped[Optional[Dict[str, Any]]] = mapped_column(JSON, nullable=True)
 
     user: Mapped["User"] = relationship("User", back_populates="documents")
+    report: Mapped[Optional["MedicalReport"]] = relationship("MedicalReport", back_populates="document", uselist=False, cascade="all, delete-orphan")

@@ -26,6 +26,13 @@ from app.models.document import (
     DocumentCategoryEnum,
     DocumentStatusEnum,
 )
+from app.models.report import (
+    MedicalReport,
+    ReportExtractionItem,
+    ReportTypeEnum,
+    ExtractionStatusEnum,
+    FlagStatusEnum,
+)
 
 __all__ = [
     "Base",
@@ -56,4 +63,9 @@ __all__ = [
     "MedicalDocument",
     "DocumentCategoryEnum",
     "DocumentStatusEnum",
+    "MedicalReport",
+    "ReportExtractionItem",
+    "ReportTypeEnum",
+    "ExtractionStatusEnum",
+    "FlagStatusEnum",
 ]
