@@ -43,6 +43,56 @@ from app.models.medicine import (
     TimingEnum,
     DoseStatusEnum,
 )
+from app.models.reminder import (
+    Reminder,
+    ReminderLog,
+    NotificationPreference,
+    ReminderTypeEnum,
+    RecurrenceTypeEnum,
+    ReminderStatusEnum,
+)
+from app.models.nutrition import (
+    FoodItem,
+    MealLog,
+    MealLogItem,
+    NutritionTarget,
+    MealPlan,
+    GroceryList,
+    MealTypeEnum,
+    DietTypeEnum,
+)
+from app.models.fitness import (
+    WorkoutLog,
+    DailyActivitySummary,
+    Habit,
+    HabitLog,
+    ActivityTypeEnum,
+    WorkoutIntensityEnum,
+)
+from app.models.wellness import (
+    MoodLog,
+    EmotionEnum,
+)
+from app.models.chat import (
+    ChatSession,
+    ChatMessage,
+    ChatRoleEnum,
+)
+from app.models.doctor import (
+    PatientAccessGrant,
+    DoctorConsultation,
+    AccessScopeEnum,
+    GrantStatusEnum,
+)
+from app.models.privacy import (
+    UserConsent,
+    AccessAuditLog,
+)
+from app.models.notification import (
+    Notification,
+    NotificationTypeEnum,
+    NotificationPriorityEnum,
+)
 
 __all__ = [
     "Base",
@@ -86,4 +136,38 @@ __all__ = [
     "FrequencyEnum",
     "TimingEnum",
     "DoseStatusEnum",
+    "Reminder",
+    "ReminderLog",
+    "NotificationPreference",
+    "ReminderTypeEnum",
+    "RecurrenceTypeEnum",
+    "ReminderStatusEnum",
+    "FoodItem",
+    "MealLog",
+    "MealLogItem",
+    "NutritionTarget",
+    "MealPlan",
+    "GroceryList",
+    "MealTypeEnum",
+    "DietTypeEnum",
+    "WorkoutLog",
+    "DailyActivitySummary",
+    "Habit",
+    "HabitLog",
+    "ActivityTypeEnum",
+    "WorkoutIntensityEnum",
+    "MoodLog",
+    "EmotionEnum",
+    "ChatSession",
+    "ChatMessage",
+    "ChatRoleEnum",
+    "PatientAccessGrant",
+    "DoctorConsultation",
+    "AccessScopeEnum",
+    "GrantStatusEnum",
+    "UserConsent",
+    "AccessAuditLog",
+    "Notification",
+    "NotificationTypeEnum",
+    "NotificationPriorityEnum",
 ]

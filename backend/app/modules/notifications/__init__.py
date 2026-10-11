@@ -1,0 +1,1 @@
+"""Notification Infrastructure domain module."""

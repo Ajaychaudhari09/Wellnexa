@@ -1,94 +1,79 @@
-# WellNexa AI — Cross-Platform Personal Healthcare & Wellness System
+# WellNexa AI — Cross-Platform Personal Healthcare and Wellness Management System
 
-[![Backend: FastAPI](https://img.shields.io/badge/Backend-FastAPI-009688.svg)](https://fastapi.tiangolo.com)
-[![Frontend: Flutter](https://img.shields.io/badge/Frontend-Flutter-02569B.svg)](https://flutter.dev)
-[![Database: PostgreSQL+pgvector](https://img.shields.io/badge/Database-PostgreSQL%20%2B%20pgvector-336791.svg)](https://github.com/pgvector/pgvector)
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
+[![FastAPI](https://img.shields.io/badge/FastAPI-0.111.0-009688.svg?style=flat&logo=fastapi)](https://fastapi.tiangolo.com)
+[![Flutter](https://img.shields.io/badge/Flutter-3.19.0-02569B.svg?style=flat&logo=flutter)](https://flutter.dev)
+[![PostgreSQL](https://img.shields.io/badge/PostgreSQL-16_with_pgvector-336791.svg?style=flat&logo=postgresql)](https://www.postgresql.org)
+[![Python](https://img.shields.io/badge/Python-3.12-3776AB.svg?style=flat&logo=python)](https://python.org)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
-WellNexa AI is a production-style, modular, cross-platform personal healthcare and wellness management system. It bridges the gap between fragmented health data and daily wellness by providing a unified health profile, human-verified OCR extraction for medical reports, prescription adherence tracking, smart reminders, nutrition & fitness tracking, privacy-controlled doctor sharing, and an AI health assistant.
-
----
-
-## 🏗️ Architecture
-
-- **Frontend**: Flutter + Dart (Riverpod, GoRouter, Dio, fl_chart) targeting Android & Web.
-- **Backend**: Python 3.12+ FastAPI modular monolith with SQLAlchemy & async Alembic migrations.
-- **Database**: PostgreSQL 16 with `pgvector` extension for structured clinical records & RAG embeddings.
-- **AI & OCR**: PaddleOCR pipeline with human confirmation workflow + provider-agnostic RAG.
+**WellNexa AI** is a production-grade, cross-platform personal healthcare and wellness management system designed for comprehensive health tracking, medical document extraction, medication management, and evidence-grounded AI assistance.
 
 ---
 
-## 🚀 Quick Start (Local Development)
+## 🌟 Key Features
 
-### 1. Prerequisites
-- Python 3.12+
-- Docker & Docker Compose
-- Flutter SDK (for mobile/web app)
+1. **Unified Health Profile & Vitals**: Complete vitals tracking with automatic BMI calculations, known allergies, chronic conditions, and lifestyle profiles.
+2. **Centralized Health Timeline**: Single chronological audit trail uniting vitals, lab reports, prescriptions, workouts, and consultations.
+3. **Medical Report OCR & Human Confirmation**: Complete Blood Count (CBC), Fasting/PP Glucose, Lipid Profile, and Thyroid Profile extractions with physiological reference range boundary flags (`NORMAL`, `LOW`, `HIGH`, `CRITICAL`).
+4. **Medical Report Analyzer & Delta Comparisons**: Plain-language clinical explanations and historical delta comparisons across consecutive reports.
+5. **Prescription & Medicine Manager**: Inventory stock tracking, dose logging (`TAKEN`, `MISSED`, `SKIPPED`), and dynamic Adherence Score calculations (`EXCELLENT`, `GOOD`, `NEEDS_ATTENTION`).
+6. **Central Smart Reminder Engine**: Multi-category reminder scheduling (`MEDICINE`, `WATER`, `APPOINTMENT`, etc.) with user quiet-hours enforcement.
+7. **Nutrition & Meal Tracking**: Nutritional reference database with automatic macro calculation and AI Meal Planner with diet preferences (`VEGETARIAN`, `KETO`, `JAIN`, etc.).
+8. **Fitness & Daily Activity**: Workout tracking, step counts, sleep quality ratings, hydration, and habit check-in streaks.
+9. **Mental Wellness Journal**: 1-5 mood rating, gratitude reflection, and AI Crisis Guardrails attaching 24/7 verified crisis helplines.
+10. **Grounded AI Health Assistant (RAG)**: Multi-turn chat grounded in active patient baseline and WHO/ICMR clinical guidelines with emergency triage redirection.
+11. **Doctor / Healthcare Professional Portal**: Time-bound access grants (1 hr to 30 days) with granular scope controls, instant kill-switch revocation, and physician consultation notes.
+12. **Consent & Privacy Center**: Granular AI/research consent toggles and one-click JSON health data export archive (GDPR/HIPAA).
+13. **Intelligent Health Dashboard**: High-performance home aggregation endpoint powering Flutter widgets.
+14. **360-Degree AI Health Snapshot**: Multi-domain synthesis highlighting positive trends, areas for attention, and prioritized next best actions.
+15. **In-App Notification Center**: Real-time unread badge counters and multi-channel dispatcher abstraction.
+16. **Immutable Audit Logging**: Write-only append security log for compliance and patient transparency.
 
-### 2. Environment Setup
+---
+
+## 🚀 Quick Start Guide
+
+### 1. Start Infrastructure via Docker Compose
 ```bash
-# Clone the repository
-git clone https://github.com/Ajaychaudhari09/Wellnexa.git
-cd Wellnexa
-
-# Copy environment variables
-cp .env.example .env
+docker compose up -d
 ```
 
-### 3. Start Database & Backend with Docker
-```bash
-docker compose up --build
-```
-- API Documentation (Swagger): [http://localhost:8000/docs](http://localhost:8000/docs)
-- Health Check: [http://localhost:8000/api/v1/health](http://localhost:8000/api/v1/health)
-
-### 4. Run Backend Locally (Without Docker)
+### 2. Run Database Migrations
 ```bash
 cd backend
-python3 -m venv venv
-source venv/bin/activate
-pip install -r requirements.txt
-uvicorn app.main:app --reload --port 8000
+alembic upgrade head
 ```
 
-### 5. Run Flutter Application
+### 3. Seed Demonstration Data
+```bash
+python -m app.db.seed_demo_data
+```
+- **Demo Patient**: `patient@wellnexa.ai` / `Password123!`
+- **Demo Doctor**: `doctor@wellnexa.ai` / `Password123!`
+
+### 4. Run Backend API Server
+```bash
+uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
+```
+Interactive API documentation: `http://localhost:8000/docs`
+
+### 5. Run Flutter Mobile / Web App
 ```bash
 cd apps/mobile
 flutter pub get
-flutter run -d chrome # Or -d android
+flutter run
 ```
 
 ---
 
-## 🧪 Running Tests
+## 🧪 Running Automated Test Suite
+
 ```bash
 cd backend
-pytest tests/
+pytest -v
 ```
 
 ---
 
-## 📅 Phased Implementation Roadmap
-- [x] **Phase 0**: Repository & Development Foundation
-- [ ] **Phase 1**: Database, Auth & Role-Based Access Control (RBAC)
-- [ ] **Phase 2**: Unified Health Profile & Metrics
-- [ ] **Phase 3**: Centralized Health Timeline
-- [ ] **Phase 4**: Document Management (PDF/Images)
-- [ ] **Phase 5**: OCR Pipeline (CBC, Glucose, Lipid, Thyroid)
-- [ ] **Phase 6**: Medical Report Analyzer & Historical Trends
-- [ ] **Phase 7**: Prescription & Medicine Manager (Adherence Scoring)
-- [ ] **Phase 8**: Central Smart Reminder Engine
-- [ ] **Phase 9**: Nutrition & AI Meal Tracking
-- [ ] **Phase 10**: Fitness & Lifestyle Tracking
-- [ ] **Phase 11**: Mental Wellness & Mood Journal
-- [ ] **Phase 12**: AI Health Assistant (RAG + Safety Guardrails)
-- [ ] **Phase 13**: Doctor / Healthcare Professional Portal
-- [ ] **Phase 14**: Consent & Privacy Center (Granular Revocable Access)
-- [ ] **Phase 15**: Intelligent Health Dashboard
-- [ ] **Phase 16**: AI Health Snapshot
-- [ ] **Phase 17**: Notification Infrastructure
-- [ ] **Phase 18**: Immutable Audit Logging
-- [ ] **Phase 19**: Flutter UI & Responsive Design System
-- [ ] **Phase 20**: Security Review & Hardening
-- [ ] **Phase 21**: Comprehensive End-to-End Testing
-- [ ] **Phase 22**: Production Deployment & Release
+## 📖 Demonstration & Viva Guide
+For a step-by-step 10-minute project presentation script, refer to [`docs/DEMO_WALKTHROUGH.md`](docs/DEMO_WALKTHROUGH.md).
