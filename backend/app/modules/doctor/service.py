@@ -95,7 +95,8 @@ class DoctorService:
 
         responses: List[AccessGrantResponse] = []
         for g in grants:
-            if g.status == GrantStatusEnum.ACTIVE and g.expires_at < now:
+            g_exp = g.expires_at if g.expires_at.tzinfo else g.expires_at.replace(tzinfo=timezone.utc)
+            if g.status == GrantStatusEnum.ACTIVE and g_exp < now:
                 g.status = GrantStatusEnum.EXPIRED
             responses.append(
                 AccessGrantResponse(
@@ -141,7 +142,8 @@ class DoctorService:
         if not grant:
             raise PermissionDeniedException("Invalid or non-existent access token")
 
-        if grant.status != GrantStatusEnum.ACTIVE or grant.expires_at < now:
+        grant_exp = grant.expires_at if grant.expires_at.tzinfo else grant.expires_at.replace(tzinfo=timezone.utc)
+        if grant.status != GrantStatusEnum.ACTIVE or grant_exp < now:
             grant.status = GrantStatusEnum.EXPIRED
             await self.db.flush()
             raise PermissionDeniedException("Access grant has expired or been revoked")

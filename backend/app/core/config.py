@@ -35,8 +35,12 @@ class Settings(BaseSettings):
     POSTGRES_USER: str = "wellnexa"
     POSTGRES_PASSWORD: str = "wellnexa_secure_password"
     POSTGRES_DB: str = "wellnexa_db"
-    DATABASE_URL: str = "postgresql+asyncpg://wellnexa:wellnexa_secure_password@localhost:5432/wellnexa_db"
-    SYNC_DATABASE_URL: str = "postgresql://wellnexa:wellnexa_secure_password@localhost:5432/wellnexa_db"
+    DATABASE_URL: str = "sqlite+aiosqlite:///./wellnexa.db"
+    SYNC_DATABASE_URL: str = "sqlite:///./wellnexa.db"
+
+    @property
+    def SQLALCHEMY_DATABASE_URI(self) -> str:
+        return self.DATABASE_URL
 
     # Storage
     STORAGE_BACKEND: str = "local"

@@ -53,6 +53,28 @@ async def get_current_active_user(
         raise ForbiddenException("User account is inactive")
     return current_user
 
+async def get_optional_current_user(
+    credentials: Optional[HTTPAuthorizationCredentials] = Depends(security_scheme),
+    db: AsyncSession = Depends(get_db),
+) -> Optional[User]:
+    """Optionally resolve user if token is present, returning None otherwise."""
+    if not credentials or not credentials.credentials:
+        return None
+    try:
+        payload = decode_token(credentials.credentials)
+        user_id_str = payload.get("sub")
+        if not user_id_str:
+            return None
+        user_id = uuid.UUID(user_id_str)
+        query = select(User).where(User.id == user_id)
+        result = await db.execute(query)
+        user = result.scalar_one_or_none()
+        if user and user.is_active:
+            return user
+        return None
+    except Exception:
+        return None
+
 def require_roles(*allowed_roles: Union[RoleEnum, str]) -> Callable:
     """Role-Based Access Control dependency factory."""
     async def role_checker(current_user: User = Depends(get_current_active_user)) -> User:

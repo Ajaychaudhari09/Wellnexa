@@ -14,15 +14,6 @@ class UserLoginRequest(BaseModel):
     email: EmailStr = Field(..., description="User email")
     password: str = Field(..., description="User password")
 
-class TokenResponse(BaseModel):
-    access_token: str
-    refresh_token: str
-    token_type: str = "bearer"
-    expires_in: int = Field(..., description="Access token expiration in seconds")
-
-class RefreshTokenRequest(BaseModel):
-    refresh_token: str
-
 class RoleResponse(BaseModel):
     id: uuid.UUID
     name: str
@@ -42,6 +33,16 @@ class UserResponse(BaseModel):
 
     class Config:
         from_attributes = True
+
+class TokenResponse(BaseModel):
+    access_token: str
+    refresh_token: str
+    token_type: str = "bearer"
+    expires_in: int = Field(..., description="Access token expiration in seconds")
+    user: Optional[UserResponse] = None
+
+class RefreshTokenRequest(BaseModel):
+    refresh_token: str
 
 class MessageResponse(BaseModel):
     message: str

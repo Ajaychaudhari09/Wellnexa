@@ -33,6 +33,10 @@ class ForbiddenException(WellNexaException):
             detail=detail,
         )
 
+class PermissionDeniedException(ForbiddenException):
+    """Raised when access to a resource is denied."""
+    pass
+
 class ConflictException(WellNexaException):
     def __init__(self, detail: str = "A resource conflict occurred"):
         super().__init__(

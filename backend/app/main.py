@@ -26,12 +26,28 @@ from app.modules.snapshot.router import router as snapshot_router
 from app.modules.notifications.router import router as notifications_router
 from app.modules.audit.router import router as audit_router
 
+import sys
+if hasattr(sys.stdout, "reconfigure"):
+    try:
+        sys.stdout.reconfigure(encoding="utf-8")
+    except Exception:
+        pass
+
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     """Application startup and shutdown lifespan events."""
-    print(f"🚀 [WellNexa AI] Initializing backend services in {settings.ENVIRONMENT} mode...")
+    print(f"[WellNexa AI] Initializing backend services in {settings.ENVIRONMENT} mode...")
+    from app.core.database import engine, Base
+    import app.models  # ensure models are loaded
+    async with engine.begin() as conn:
+        await conn.run_sync(Base.metadata.create_all)
+    from app.db.seed_demo_data import seed_all
+    try:
+        await seed_all()
+    except Exception as e:
+        print(f"Seed note: {e}")
     yield
-    print("🛑 [WellNexa AI] Shutting down backend services...")
+    print("[WellNexa AI] Shutting down backend services...")
 
 app = FastAPI(
     title=settings.APP_NAME,

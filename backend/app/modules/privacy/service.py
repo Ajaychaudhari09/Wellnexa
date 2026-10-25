@@ -93,8 +93,8 @@ class PrivacyService:
             "gender": prof.gender.value if prof.gender else None,
             "blood_group": prof.blood_group.value if prof.blood_group else None,
             "date_of_birth": str(prof.date_of_birth) if prof.date_of_birth else None,
-            "height_cm": prof.height_cm,
-            "weight_kg": prof.weight_kg,
+            "height_cm": getattr(prof, "height_cm", None),
+            "weight_kg": getattr(prof, "weight_kg", None),
             "emergency_contact": prof.emergency_contact_phone,
         } if prof else None
 
@@ -143,6 +143,17 @@ class PrivacyService:
             resource="complete_health_record",
             ip_address=ip_address,
             user_agent=user_agent,
+        )
+
+        from app.modules.audit.service import AuditService
+        audit_svc = AuditService(self.db)
+        await audit_svc.record_audit_event(
+            user_id=user_id,
+            action="EXPORT_HEALTH_DATA",
+            resource="complete_health_record",
+            ip_address=ip_address,
+            user_agent=user_agent,
+            details={"type": "json_archive"},
         )
 
         return HealthDataExportResponse(

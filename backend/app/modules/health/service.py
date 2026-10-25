@@ -72,9 +72,9 @@ class HealthMetricService:
                 metadata_info={"metric_type": item.metric_type.value, "value": item.value, "unit": item.unit},
             )
 
-            if item.metric_type == MetricTypeEnum.WEIGHT:
+            if item.metric_type in (MetricTypeEnum.WEIGHT, MetricTypeEnum.WEIGHT_KG):
                 weight_val = item.value
-            elif item.metric_type == MetricTypeEnum.HEIGHT:
+            elif item.metric_type in (MetricTypeEnum.HEIGHT, MetricTypeEnum.HEIGHT_CM):
                 height_val = item.value
 
         await self.db.flush()
@@ -91,7 +91,7 @@ class HealthMetricService:
         """Retrieve most recent weight and height to compute and persist BMI."""
         if weight_val is None:
             w_q = select(HealthMetric).where(
-                and_(HealthMetric.user_id == user_id, HealthMetric.metric_type == MetricTypeEnum.WEIGHT)
+                and_(HealthMetric.user_id == user_id, HealthMetric.metric_type.in_([MetricTypeEnum.WEIGHT, MetricTypeEnum.WEIGHT_KG]))
             ).order_by(desc(HealthMetric.recorded_at)).limit(1)
             w_res = await self.db.execute(w_q)
             w_metric = w_res.scalar_one_or_none()
@@ -100,7 +100,7 @@ class HealthMetricService:
 
         if height_val is None:
             h_q = select(HealthMetric).where(
-                and_(HealthMetric.user_id == user_id, HealthMetric.metric_type == MetricTypeEnum.HEIGHT)
+                and_(HealthMetric.user_id == user_id, HealthMetric.metric_type.in_([MetricTypeEnum.HEIGHT, MetricTypeEnum.HEIGHT_CM]))
             ).order_by(desc(HealthMetric.recorded_at)).limit(1)
             h_res = await self.db.execute(h_q)
             h_metric = h_res.scalar_one_or_none()

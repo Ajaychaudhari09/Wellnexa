@@ -32,14 +32,26 @@ from app.models.fitness import WorkoutLog, DailyActivitySummary, Habit, Activity
 from app.models.wellness import MoodLog, EmotionEnum
 from app.models.doctor import PatientAccessGrant, DoctorConsultation, AccessScopeEnum, GrantStatusEnum
 from app.models.privacy import UserConsent
+import sys
+if hasattr(sys.stdout, "reconfigure"):
+    try:
+        sys.stdout.reconfigure(encoding="utf-8")
+    except Exception:
+        pass
+
 from app.models.notification import Notification, NotificationTypeEnum, NotificationPriorityEnum
 
 async def seed_all():
     engine = create_async_engine(settings.SQLALCHEMY_DATABASE_URI, echo=False)
+    from app.core.database import Base
+    import app.models
+    async with engine.begin() as conn:
+        await conn.run_sync(Base.metadata.create_all)
+
     session_factory = async_sessionmaker(engine, expire_on_commit=False, class_=AsyncSession)
 
     async with session_factory() as db:
-        print("🌱 [WellNexa AI] Seeding realistic demonstration data for project evaluation...")
+        print("[WellNexa AI] Seeding realistic demonstration data for project evaluation...")
 
         # 1. Roles
         roles_dict = {}
@@ -77,8 +89,6 @@ async def seed_all():
                 date_of_birth=date(1990, 5, 19),
                 gender=GenderEnum.MALE,
                 blood_group=BloodGroupEnum.O_POSITIVE,
-                height_cm=188.0,
-                weight_kg=85.0,
                 emergency_contact_name="Alfred Pennyworth",
                 emergency_contact_phone="+1-555-0199",
             )
@@ -107,7 +117,7 @@ async def seed_all():
             # Allergies & Conditions
             allergy = Allergy(user_id=patient.id, allergen="Penicillin", severity=AllergySeverityEnum.HIGH, reaction="Anaphylaxis hives")
             condition = MedicalCondition(user_id=patient.id, condition_name="Mild Primary Hypertension", status=ConditionStatusEnum.ACTIVE, diagnosed_date=date(2023, 3, 15))
-            goal = HealthGoal(user_id=patient.id, title="Cardiovascular Endurance", target_metric="STEPS_DAILY", target_value=10000.0, current_value=8500.0, status=GoalStatusEnum.IN_PROGRESS)
+            goal = HealthGoal(user_id=patient.id, title="Cardiovascular Endurance", goal_type="STEPS_DAILY", target_value=10000.0, current_value=8500.0, unit="steps", status=GoalStatusEnum.IN_PROGRESS)
             db.add_all([allergy, condition, goal])
 
             # Vitals
@@ -123,9 +133,25 @@ async def seed_all():
             ]
             db.add_all(vitals)
 
-            # Confirmed Medical Lab Report
+            # Document & Confirmed Medical Lab Report
+            doc = MedicalDocument(
+                user_id=patient.id,
+                category=DocumentCategoryEnum.MEDICAL_REPORT,
+                status=DocumentStatusEnum.EXTRACTED,
+                title="Annual Lipid Profile 2026",
+                file_name="annual_lipid_panel.pdf",
+                original_file_name="annual_lipid_panel.pdf",
+                file_size_bytes=24580,
+                mime_type="application/pdf",
+                file_path="demo/annual_lipid_panel.pdf",
+                checksum_sha256="e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+            )
+            db.add(doc)
+            await db.flush()
+
             report = MedicalReport(
                 user_id=patient.id,
+                document_id=doc.id,
                 report_type=ReportTypeEnum.LIPID_PROFILE,
                 status=ExtractionStatusEnum.CONFIRMED,
                 lab_name="Gotham Metropolitan Diagnostics",
@@ -134,29 +160,29 @@ async def seed_all():
             db.add(report)
             await db.flush()
 
-            ext1 = ReportExtractionItem(report_id=report.id, test_name="Total Cholesterol", detected_value="195", confirmed_value="195", unit="mg/dL", reference_range_min=0.0, reference_range_max=200.0, flag_status=FlagStatusEnum.NORMAL)
-            ext2 = ReportExtractionItem(report_id=report.id, test_name="HDL Cholesterol", detected_value="58", confirmed_value="58", unit="mg/dL", reference_range_min=40.0, reference_range_max=60.0, flag_status=FlagStatusEnum.NORMAL)
-            ext3 = ReportExtractionItem(report_id=report.id, test_name="LDL Cholesterol", detected_value="112", confirmed_value="112", unit="mg/dL", reference_range_min=0.0, reference_range_max=100.0, flag_status=FlagStatusEnum.HIGH)
-            ext4 = ReportExtractionItem(report_id=report.id, test_name="Triglycerides", detected_value="125", confirmed_value="125", unit="mg/dL", reference_range_min=0.0, reference_range_max=150.0, flag_status=FlagStatusEnum.NORMAL)
+            ext1 = ReportExtractionItem(report_id=report.id, test_name="Total Cholesterol", metric_type=MetricTypeEnum.CHOLESTEROL_TOTAL, detected_value=195.0, confirmed_value=195.0, unit="mg/dL", reference_range_low=0.0, reference_range_high=200.0, flag_status=FlagStatusEnum.NORMAL, is_confirmed=True)
+            ext2 = ReportExtractionItem(report_id=report.id, test_name="HDL Cholesterol", metric_type=MetricTypeEnum.CHOLESTEROL_HDL, detected_value=58.0, confirmed_value=58.0, unit="mg/dL", reference_range_low=40.0, reference_range_high=60.0, flag_status=FlagStatusEnum.NORMAL, is_confirmed=True)
+            ext3 = ReportExtractionItem(report_id=report.id, test_name="LDL Cholesterol", metric_type=MetricTypeEnum.CHOLESTEROL_LDL, detected_value=112.0, confirmed_value=112.0, unit="mg/dL", reference_range_low=0.0, reference_range_high=100.0, flag_status=FlagStatusEnum.HIGH, is_confirmed=True)
+            ext4 = ReportExtractionItem(report_id=report.id, test_name="Triglycerides", metric_type=MetricTypeEnum.TRIGLYCERIDES, detected_value=125.0, confirmed_value=125.0, unit="mg/dL", reference_range_low=0.0, reference_range_high=150.0, flag_status=FlagStatusEnum.NORMAL, is_confirmed=True)
             db.add_all([ext1, ext2, ext3, ext4])
 
             # Prescriptions & Medicines
-            med1 = Medication(user_id=patient.id, name="Metformin", dosage="500 mg", form=MedicationFormEnum.TABLET, frequency=FrequencyEnum.TWICE_DAILY, timing=TimingEnum.AFTER_MEAL, stock_quantity=45, refill_threshold=10, is_active=True)
-            med2 = Medication(user_id=patient.id, name="Omega-3 Fish Oil", dosage="1000 mg", form=MedicationFormEnum.CAPSULE, frequency=FrequencyEnum.ONCE_DAILY, timing=TimingEnum.AFTER_MEAL, stock_quantity=28, refill_threshold=7, is_active=True)
-            med3 = Medication(user_id=patient.id, name="Vitamin D3", dosage="1000 IU", form=MedicationFormEnum.TABLET, frequency=FrequencyEnum.ONCE_DAILY, timing=TimingEnum.MORNING, stock_quantity=60, refill_threshold=14, is_active=True)
+            med1 = Medication(user_id=patient.id, name="Metformin", dosage="500 mg", form=MedicationFormEnum.TABLET, frequency=FrequencyEnum.TWICE_DAILY, timing=TimingEnum.AFTER_MEAL, current_stock=45, refill_threshold=10, is_active=True)
+            med2 = Medication(user_id=patient.id, name="Omega-3 Fish Oil", dosage="1000 mg", form=MedicationFormEnum.CAPSULE, frequency=FrequencyEnum.ONCE_DAILY, timing=TimingEnum.AFTER_MEAL, current_stock=28, refill_threshold=7, is_active=True)
+            med3 = Medication(user_id=patient.id, name="Vitamin D3", dosage="1000 IU", form=MedicationFormEnum.TABLET, frequency=FrequencyEnum.ONCE_DAILY, timing=TimingEnum.BEFORE_MEAL, current_stock=60, refill_threshold=14, is_active=True)
             db.add_all([med1, med2, med3])
             await db.flush()
 
             # Dose Logs (High adherence ~93%)
             for i in range(14):
                 log_day = now - timedelta(days=i)
-                db.add(MedicationLog(medication_id=med1.id, user_id=patient.id, scheduled_time=log_day, taken_time=log_day, status=DoseStatusEnum.TAKEN))
-                db.add(MedicationLog(medication_id=med2.id, user_id=patient.id, scheduled_time=log_day, taken_time=log_day, status=DoseStatusEnum.TAKEN if i != 3 else DoseStatusEnum.MISSED))
+                db.add(MedicationLog(medication_id=med1.id, user_id=patient.id, scheduled_at=log_day, taken_at=log_day, status=DoseStatusEnum.TAKEN))
+                db.add(MedicationLog(medication_id=med2.id, user_id=patient.id, scheduled_at=log_day, taken_at=log_day if i != 3 else None, status=DoseStatusEnum.TAKEN if i != 3 else DoseStatusEnum.MISSED))
 
             # Smart Reminders
-            r1 = Reminder(user_id=patient.id, reminder_type=ReminderTypeEnum.MEDICINE, title="Take Metformin (500mg)", due_time="08:30", recurrence=RecurrenceTypeEnum.DAILY, status=ReminderStatusEnum.PENDING)
-            r2 = Reminder(user_id=patient.id, reminder_type=ReminderTypeEnum.WATER, title="Hydration Break (500ml)", due_time="11:00", recurrence=RecurrenceTypeEnum.DAILY, status=ReminderStatusEnum.PENDING)
-            r3 = Reminder(user_id=patient.id, reminder_type=ReminderTypeEnum.MEDICINE, title="Take Metformin & Omega-3", due_time="20:00", recurrence=RecurrenceTypeEnum.DAILY, status=ReminderStatusEnum.PENDING)
+            r1 = Reminder(user_id=patient.id, reminder_type=ReminderTypeEnum.MEDICINE, title="Take Metformin (500mg)", due_time="08:30", recurrence=RecurrenceTypeEnum.DAILY)
+            r2 = Reminder(user_id=patient.id, reminder_type=ReminderTypeEnum.WATER, title="Hydration Break (500ml)", due_time="11:00", recurrence=RecurrenceTypeEnum.DAILY)
+            r3 = Reminder(user_id=patient.id, reminder_type=ReminderTypeEnum.MEDICINE, title="Take Metformin & Omega-3", due_time="20:00", recurrence=RecurrenceTypeEnum.DAILY)
             db.add_all([r1, r2, r3])
 
             # Nutrition Meals
@@ -169,7 +195,7 @@ async def seed_all():
 
             # Workouts & Daily Activity
             workout = WorkoutLog(user_id=patient.id, activity_type=ActivityTypeEnum.RUNNING, title="Morning High-Pace Interval Run", duration_minutes=40, calories_burned=410.0, intensity=WorkoutIntensityEnum.HIGH, logged_date=date.today())
-            daily_act = DailyActivitySummary(user_id=patient.id, date=date.today(), step_count=8750, active_minutes=45, sleep_hours=7.8, sleep_quality_rating=5, water_ml=2400, stress_level=3)
+            daily_act = DailyActivitySummary(user_id=patient.id, date=date.today(), steps=8750, active_minutes=45, sleep_hours=7.8, sleep_quality=5, water_ml=2400, stress_level=3)
             db.add_all([workout, daily_act])
 
             # Mood Check-In
@@ -193,7 +219,7 @@ async def seed_all():
             db.add_all([t1, t2])
 
             await db.commit()
-            print("✅ [WellNexa AI] Demo patient account created: patient@wellnexa.ai / Password123!")
+            print("[WellNexa AI] Demo patient account created: patient@wellnexa.ai / Password123!")
 
         # 3. Doctor User: doctor@wellnexa.ai
         doc_q = select(User).where(User.email == "doctor@wellnexa.ai")
@@ -220,9 +246,9 @@ async def seed_all():
             )
             db.add(doc_profile)
             await db.commit()
-            print("✅ [WellNexa AI] Demo doctor account created: doctor@wellnexa.ai / Password123!")
+            print("[WellNexa AI] Demo doctor account created: doctor@wellnexa.ai / Password123!")
 
-        print("🎉 [WellNexa AI] Demonstration data seeding successfully completed.")
+        print("[WellNexa AI] Demonstration data seeding successfully completed.")
 
 if __name__ == "__main__":
     asyncio.run(seed_all())

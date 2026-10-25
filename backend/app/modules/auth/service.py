@@ -84,6 +84,7 @@ class AuthService:
             last_name=req.last_name.strip(),
         )
         self.db.add(profile)
+        new_user.profile = profile
         await self.db.flush()
 
         # Audit log
@@ -146,11 +147,26 @@ class AuthService:
             user_agent=user_agent,
         )
 
+        role_names = [
+            r.name.value if hasattr(r.name, "value") else str(r.name)
+            for r in user.roles
+        ]
+        user_resp = UserResponse(
+            id=user.id,
+            email=user.email,
+            is_active=user.is_active,
+            is_verified=user.is_verified,
+            roles=role_names,
+            first_name=user.profile.first_name if user.profile else None,
+            last_name=user.profile.last_name if user.profile else None,
+        )
+
         token_response = TokenResponse(
             access_token=access_token,
             refresh_token=refresh_token,
             token_type="bearer",
             expires_in=settings.ACCESS_TOKEN_EXPIRE_MINUTES * 60,
+            user=user_resp,
         )
 
         return user, token_response
@@ -176,7 +192,11 @@ class AuthService:
         result = await self.db.execute(query)
         stored_token = result.scalar_one_or_none()
 
-        if not stored_token or stored_token.expires_at < datetime.now(timezone.utc):
+        if not stored_token:
+            raise UnauthorizedException("Refresh token is expired or has been revoked")
+
+        stored_expires = stored_token.expires_at if stored_token.expires_at.tzinfo else stored_token.expires_at.replace(tzinfo=timezone.utc)
+        if stored_expires < datetime.now(timezone.utc):
             raise UnauthorizedException("Refresh token is expired or has been revoked")
 
         # Fetch user

@@ -3,7 +3,7 @@
 from typing import Dict, Any, List, Optional
 
 DISCLAIMER_TEXT = (
-    "WellNexa AI Health Snapshot is an educational synthesis for general health management and trend visualization. "
+    "WellNexa AI Health Snapshot Medical Disclaimer: This is an educational synthesis for general health management and trend visualization. "
     "It is not a clinical diagnosis or medical prognosis. Always consult a qualified healthcare provider for personalized medical evaluation."
 )
 

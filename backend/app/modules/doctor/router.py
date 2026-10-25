@@ -4,7 +4,7 @@ from fastapi import APIRouter, Depends, Query, Header, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.database import get_db
-from app.core.deps import get_current_active_user
+from app.core.deps import get_current_active_user, get_optional_current_user
 from app.schemas.common import ApiResponse
 from app.models.user import User
 from app.modules.doctor.schemas import (
@@ -68,7 +68,7 @@ async def create_consultation_note(
     patient_id: uuid.UUID,
     req: DoctorConsultationCreateRequest,
     token: Optional[str] = Query(None, description="Access token if accessing via link"),
-    current_user: Optional[User] = Depends(get_current_active_user),
+    current_user: Optional[User] = Depends(get_optional_current_user),
     db: AsyncSession = Depends(get_db),
 ) -> ApiResponse[DoctorConsultationResponse]:
     """Record clinical consultation observations and action plan, syncing to patient timeline."""
@@ -86,7 +86,7 @@ async def create_consultation_note(
 async def get_patient_consultations(
     patient_id: uuid.UUID,
     token: Optional[str] = Query(None, description="Access token"),
-    current_user: Optional[User] = Depends(get_current_active_user),
+    current_user: Optional[User] = Depends(get_optional_current_user),
     db: AsyncSession = Depends(get_db),
 ) -> ApiResponse[List[DoctorConsultationResponse]]:
     """Retrieve consultation notes for a patient."""

@@ -50,7 +50,7 @@ class NotificationService:
         await self.db.flush()
 
         # Multi-Channel Dispatch Abstraction (Push Notification / Email simulation)
-        print(f"📡 [Notification Dispatcher] Sent {req.priority.value} alert '{req.title}' to user {user_id} (Channels: In-App, Push={pref.enable_push if pref else True}, Email={pref.enable_email if pref else False})")
+        print(f"[Notification Dispatcher] Sent {req.priority.value} alert '{req.title}' to user {user_id} (Channels: In-App, Push={pref.enable_push if pref else True}, Email={pref.enable_email if pref else False})")
 
         return notification
 

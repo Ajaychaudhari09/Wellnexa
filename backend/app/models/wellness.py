@@ -13,6 +13,7 @@ class EmotionEnum(str, enum.Enum):
     CALM = "CALM"
     CONTENT = "CONTENT"
     ENERGETIC = "ENERGETIC"
+    FOCUSED = "FOCUSED"
     NEUTRAL = "NEUTRAL"
     TIRED = "TIRED"
     ANXIOUS = "ANXIOUS"

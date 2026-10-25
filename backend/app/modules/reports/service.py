@@ -121,23 +121,27 @@ class OcrService:
         if req.notes:
             report.summary_notes = req.notes.strip()
 
-        confirm_map = {item.extraction_id: item for item in req.confirmed_items}
+        confirm_map = {item.extraction_id: item for item in (req.confirmed_items or [])}
         confirmed_metrics_count = 0
 
         for ext in report.extractions:
-            if ext.id in confirm_map:
-                c_payload = confirm_map[ext.id]
-                if not c_payload.is_confirmed:
-                    ext.is_confirmed = False
-                    continue
+            if not confirm_map or ext.id in confirm_map:
+                if ext.id in confirm_map:
+                    c_payload = confirm_map[ext.id]
+                    if not c_payload.is_confirmed:
+                        ext.is_confirmed = False
+                        continue
+                    final_val = c_payload.confirmed_value
+                    if round(c_payload.confirmed_value, 2) != round(ext.detected_value, 2):
+                        ext.user_corrected = True
+                else:
+                    final_val = ext.detected_value
 
                 ext.is_confirmed = True
-                ext.confirmed_value = c_payload.confirmed_value
-                if round(c_payload.confirmed_value, 2) != round(ext.detected_value, 2):
-                    ext.user_corrected = True
+                ext.confirmed_value = final_val
 
                 ext.flag_status = evaluate_flag(
-                    c_payload.confirmed_value,
+                    final_val,
                     ext.reference_range_low,
                     ext.reference_range_high,
                 )
@@ -146,7 +150,7 @@ class OcrService:
                     metric = HealthMetric(
                         user_id=user_id,
                         metric_type=ext.metric_type,
-                        value=c_payload.confirmed_value,
+                        value=final_val,
                         unit=ext.unit,
                         recorded_at=datetime.now(timezone.utc),
                         source=MetricSourceEnum.OCR_EXTRACTION,

@@ -72,7 +72,7 @@ class AssistantGuardrailChecker:
                     "is_blocked": True,
                     "action": "EMERGENCY_REDIRECT",
                     "response": (
-                        "🚨 **URGENT MEDICAL ALERT**: The symptoms described may indicate a medical emergency requiring immediate in-person clinical evaluation.\n\n"
+                        "🚨 **URGENT MEDICAL EMERGENCY ALERT**: The symptoms described may indicate a medical emergency requiring immediate in-person clinical evaluation.\n\n"
                         "Please call your local emergency services (e.g., **112 / 102 in India**, **911 in US**) or proceed immediately to the nearest emergency room (ER) or hospital casualty ward."
                     ),
                     "disclaimer": STANDARD_DISCLAIMER,

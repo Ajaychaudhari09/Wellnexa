@@ -13,12 +13,15 @@ class MetricTypeEnum(str, enum.Enum):
     BLOOD_PRESSURE_SYSTOLIC = "BLOOD_PRESSURE_SYSTOLIC"
     BLOOD_PRESSURE_DIASTOLIC = "BLOOD_PRESSURE_DIASTOLIC"
     HEART_RATE = "HEART_RATE"
+    HEART_RATE_BPM = "HEART_RATE_BPM"
     OXYGEN_SATURATION = "OXYGEN_SATURATION"
     BODY_TEMPERATURE = "BODY_TEMPERATURE"
     
     # Body Measurements
     WEIGHT = "WEIGHT"
+    WEIGHT_KG = "WEIGHT_KG"
     HEIGHT = "HEIGHT"
+    HEIGHT_CM = "HEIGHT_CM"
     BMI = "BMI"
     
     # Lab & Blood Test Vitals
@@ -40,8 +43,10 @@ class MetricSourceEnum(str, enum.Enum):
     SYSTEM_CALCULATED = "SYSTEM_CALCULATED"
 
 class AllergySeverityEnum(str, enum.Enum):
+    LOW = "LOW"
     MILD = "MILD"
     MODERATE = "MODERATE"
+    HIGH = "HIGH"
     SEVERE = "SEVERE"
     LIFE_THREATENING = "LIFE_THREATENING"
 

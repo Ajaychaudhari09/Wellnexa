@@ -58,11 +58,17 @@ class WellnessService:
         )
 
         crisis_info = None
+        crisis_resources_dict = None
         if is_crisis:
             crisis_info = CrisisSupportInfo(
                 support_message=safety_check["support_message"],
                 helpline_resources=safety_check["helpline_resources"],
             )
+            crisis_resources_dict = {
+                "support_message": safety_check["support_message"],
+                "hotlines": list(safety_check["helpline_resources"].values()),
+                **safety_check["helpline_resources"],
+            }
 
         return MoodLogResponse(
             id=mood.id,
@@ -75,7 +81,9 @@ class WellnessService:
             sleep_quality=mood.sleep_quality,
             logged_date=mood.logged_date,
             crisis_flag=mood.crisis_flag,
+            is_crisis_detected=is_crisis,
             crisis_support=crisis_info,
+            crisis_resources=crisis_resources_dict,
             created_at=mood.created_at,
         )
 

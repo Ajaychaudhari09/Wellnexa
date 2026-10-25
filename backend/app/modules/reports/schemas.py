@@ -42,7 +42,7 @@ class ConfirmItemPayload(BaseModel):
     is_confirmed: bool = True
 
 class ConfirmReportRequest(BaseModel):
-    confirmed_items: List[ConfirmItemPayload]
+    confirmed_items: Optional[List[ConfirmItemPayload]] = Field(default_factory=list)
     report_date: Optional[date] = None
     lab_name: Optional[str] = None
     notes: Optional[str] = None

@@ -28,7 +28,9 @@ class MoodLogResponse(BaseModel):
     sleep_quality: Optional[int] = None
     logged_date: date
     crisis_flag: bool
+    is_crisis_detected: bool = False
     crisis_support: Optional[CrisisSupportInfo] = None
+    crisis_resources: Optional[Dict[str, Any]] = None
     created_at: datetime
 
     class Config:

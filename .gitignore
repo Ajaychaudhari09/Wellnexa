@@ -73,3 +73,10 @@ apps/mobile/ios/Pods
 apps/mobile/ios/.symlinks
 apps/mobile/ios/Flutter/flutter_export_environment.sh
 apps/mobile/web/build/
+
+# Web & Node
+node_modules/
+apps/web/node_modules/
+apps/web/dist/
+.vite/
+

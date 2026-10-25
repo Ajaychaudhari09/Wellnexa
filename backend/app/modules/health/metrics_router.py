@@ -17,17 +17,20 @@ from app.modules.health.schemas import (
 )
 from app.modules.health.service import HealthMetricService
 
+from typing import List, Optional, Union
+
 router = APIRouter(prefix="/metrics", tags=["Health Metrics"])
 
 @router.post("", response_model=ApiResponse[List[MetricResponse]], status_code=status.HTTP_201_CREATED)
 async def log_metrics(
-    req: MetricBatchCreateRequest,
+    req: Union[MetricBatchCreateRequest, MetricCreateItem],
     current_user: User = Depends(get_current_active_user),
     db: AsyncSession = Depends(get_db),
 ) -> ApiResponse[List[MetricResponse]]:
     """Log one or multiple health metrics with automatic BMI calculation."""
     service = HealthMetricService(db)
-    created = await service.log_metrics(current_user.id, req.metrics)
+    items = req.metrics if isinstance(req, MetricBatchCreateRequest) else [req]
+    created = await service.log_metrics(current_user.id, items)
 
     payload = [
         MetricResponse(

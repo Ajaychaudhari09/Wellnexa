@@ -10,6 +10,7 @@ from app.models.base import UUIDMixin, TimestampMixin
 
 class DocumentCategoryEnum(str, enum.Enum):
     MEDICAL_REPORT = "MEDICAL_REPORT"
+    LAB_REPORT = "LAB_REPORT"
     PRESCRIPTION = "PRESCRIPTION"
     LAB_INVOICE = "LAB_INVOICE"
     DISCHARGE_SUMMARY = "DISCHARGE_SUMMARY"

@@ -7,9 +7,9 @@ from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession, async_sess
 from sqlalchemy.pool import StaticPool
 from sqlalchemy import select
 
-from app.main import app
-from app.core.database import Base, get_db
 import app.models  # Ensure all models are registered in Base.metadata
+from app.core.database import Base, get_db
+from app.main import app
 
 TEST_DATABASE_URL = "sqlite+aiosqlite:///:memory:"
 

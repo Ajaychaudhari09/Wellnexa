@@ -37,7 +37,7 @@ class User(Base, UUIDMixin, TimestampMixin):
     is_verified: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
 
     # Relationships
-    roles: Mapped[List[Role]] = relationship("Role", secondary=user_roles, back_populates="roles", lazy="selectin")
+    roles: Mapped[List[Role]] = relationship("Role", secondary=user_roles, back_populates="users", lazy="selectin")
     profile: Mapped[Optional["Profile"]] = relationship("Profile", back_populates="user", uselist=False, cascade="all, delete-orphan", lazy="selectin")
     lifestyle: Mapped[Optional["LifestyleProfile"]] = relationship("LifestyleProfile", back_populates="user", uselist=False, cascade="all, delete-orphan", lazy="selectin")
     notification_preferences: Mapped[Optional["NotificationPreference"]] = relationship("NotificationPreference", back_populates="user", uselist=False, cascade="all, delete-orphan", lazy="selectin")
