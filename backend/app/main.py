@@ -25,6 +25,7 @@ from app.modules.dashboard.router import router as dashboard_router
 from app.modules.snapshot.router import router as snapshot_router
 from app.modules.notifications.router import router as notifications_router
 from app.modules.audit.router import router as audit_router
+from app.modules.appointments.router import router as appointments_router
 
 import sys
 if hasattr(sys.stdout, "reconfigure"):
@@ -105,6 +106,7 @@ app.include_router(dashboard_router, prefix=settings.API_V1_STR)
 app.include_router(snapshot_router, prefix=settings.API_V1_STR)
 app.include_router(notifications_router, prefix=settings.API_V1_STR)
 app.include_router(audit_router, prefix=settings.API_V1_STR)
+app.include_router(appointments_router, prefix=settings.API_V1_STR)
 
 @app.get("/")
 async def root():

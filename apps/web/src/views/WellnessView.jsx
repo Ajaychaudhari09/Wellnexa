@@ -90,7 +90,7 @@ export default function WellnessView() {
 
       {/* Header */}
       <div style={{ marginBottom: '28px' }}>
-        <h1 style={{ fontSize: '1.85rem', fontWeight: 800, margin: 0, color: '#f8fafc' }}>
+        <h1 style={{ fontSize: '1.85rem', fontWeight: 800, margin: 0, color: 'var(--text-main)' }}>
           Mental Wellness Journal & Crisis Guardrails
         </h1>
         <p style={{ color: 'var(--text-muted)', fontSize: '0.9rem', margin: '4px 0 0' }}>
@@ -102,7 +102,7 @@ export default function WellnessView() {
       <div className="glass-card" style={{
         padding: '24px 28px',
         marginBottom: '28px',
-        background: isLowMood ? 'linear-gradient(135deg, rgba(239, 68, 68, 0.15) 0%, rgba(15, 23, 42, 0.9) 100%)' : 'rgba(15, 23, 42, 0.7)',
+        background: isLowMood ? 'linear-gradient(135deg, rgba(239, 68, 68, 0.12) 0%, var(--bg-item) 100%)' : 'var(--bg-item)',
         border: `1px solid ${isLowMood ? 'rgba(239, 68, 68, 0.4)' : 'var(--border-subtle)'}`,
       }}>
         <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', flexWrap: 'wrap', gap: '16px' }}>
@@ -111,7 +111,7 @@ export default function WellnessView() {
               width: '42px',
               height: '42px',
               borderRadius: '10px',
-              background: 'rgba(239, 68, 68, 0.15)',
+              background: 'rgba(239, 68, 68, 0.12)',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
@@ -119,7 +119,7 @@ export default function WellnessView() {
               <ShieldAlert size={22} color="#f87171" />
             </div>
             <div>
-              <h3 style={{ margin: 0, fontSize: '1.1rem', color: '#f8fafc' }}>
+              <h3 style={{ margin: 0, fontSize: '1.1rem', color: 'var(--text-main)' }}>
                 AI Crisis Guardrails & 24/7 Verified Helplines
               </h3>
               <p style={{ margin: '4px 0 0', fontSize: '0.82rem', color: 'var(--text-muted)' }}>
@@ -149,7 +149,7 @@ export default function WellnessView() {
 
       {/* Main Form: Daily Check-In */}
       <div className="glass-card" style={{ padding: '32px' }}>
-        <h2 style={{ fontSize: '1.3rem', fontWeight: 700, margin: '0 0 20px', color: '#f8fafc' }}>
+        <h2 style={{ fontSize: '1.3rem', fontWeight: 700, margin: '0 0 20px', color: 'var(--text-main)' }}>
           Daily Mood & Gratitude Check-In
         </h2>
 
@@ -167,9 +167,9 @@ export default function WellnessView() {
                     flex: 1,
                     padding: '14px',
                     borderRadius: 'var(--radius-md)',
-                    border: moodScore === val ? '2px solid #06b6d4' : '1px solid var(--border-subtle)',
-                    background: moodScore === val ? 'rgba(6, 182, 212, 0.2)' : 'rgba(15, 23, 42, 0.6)',
-                    color: '#f8fafc',
+                    border: moodScore === val ? '2px solid var(--primary)' : '1px solid var(--border-subtle)',
+                    background: moodScore === val ? 'var(--mint-surface)' : 'var(--bg-item)',
+                    color: moodScore === val ? 'var(--primary-deep)' : 'var(--text-main)',
                     fontSize: '1.25rem',
                     fontWeight: 700,
                     cursor: 'pointer',
@@ -199,9 +199,9 @@ export default function WellnessView() {
                   style={{
                     fontSize: '0.8rem',
                     padding: '8px 14px',
-                    background: emotion === emo ? 'linear-gradient(135deg, #8b5cf6 0%, #6366f1 100%)' : 'rgba(30, 41, 59, 0.6)',
-                    color: emotion === emo ? '#ffffff' : 'var(--text-muted)',
-                    borderColor: emotion === emo ? '#8b5cf6' : 'var(--border-subtle)',
+                    background: emotion === emo ? 'var(--primary)' : 'var(--bg-item)',
+                    color: emotion === emo ? '#ffffff' : 'var(--text-main)',
+                    borderColor: emotion === emo ? 'var(--primary)' : 'var(--border-subtle)',
                   }}
                 >
                   {emo}

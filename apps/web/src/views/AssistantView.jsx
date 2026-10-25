@@ -121,7 +121,7 @@ export default function AssistantView() {
       {/* Header */}
       <div style={{ marginBottom: '18px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
         <div>
-          <h1 style={{ fontSize: '1.85rem', fontWeight: 800, margin: 0, color: '#f8fafc' }}>
+          <h1 style={{ fontSize: '1.85rem', fontWeight: 800, margin: 0, color: 'var(--text-main)' }}>
             Grounded AI Health Assistant
           </h1>
           <p style={{ color: 'var(--text-muted)', fontSize: '0.85rem', margin: '2px 0 0' }}>
@@ -220,7 +220,7 @@ export default function AssistantView() {
         <div style={{
           padding: '10px 20px',
           borderTop: '1px solid var(--border-subtle)',
-          background: 'rgba(15, 23, 42, 0.5)',
+          background: 'var(--bg-item)',
           display: 'flex',
           gap: '8px',
           overflowX: 'auto',
@@ -243,7 +243,7 @@ export default function AssistantView() {
           borderTop: '1px solid var(--border-subtle)',
           display: 'flex',
           gap: '12px',
-          background: 'rgba(10, 17, 32, 0.9)',
+          background: 'var(--bg-card)',
         }}>
           <input
             type="text"

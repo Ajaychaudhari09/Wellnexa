@@ -118,7 +118,7 @@ export default function PrivacyView() {
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '28px', flexWrap: 'wrap', gap: '16px' }}>
         <div>
           <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-            <h1 style={{ fontSize: '1.85rem', fontWeight: 800, margin: 0, color: '#f8fafc' }}>
+            <h1 style={{ fontSize: '1.85rem', fontWeight: 800, margin: 0, color: 'var(--text-main)' }}>
               Consent & Privacy Center
             </h1>
             <span className="badge badge-normal" style={{ fontSize: '0.75rem' }}>
@@ -137,7 +137,7 @@ export default function PrivacyView() {
 
       {/* Consent Toggles Card */}
       <div className="glass-card" style={{ padding: '28px', marginBottom: '28px' }}>
-        <h2 style={{ fontSize: '1.25rem', fontWeight: 700, margin: '0 0 20px', color: '#f8fafc' }}>
+        <h2 style={{ fontSize: '1.25rem', fontWeight: 700, margin: '0 0 20px', color: 'var(--text-main)' }}>
           Granular Authorization Toggles
         </h2>
 
@@ -148,12 +148,12 @@ export default function PrivacyView() {
             alignItems: 'center',
             justifyContent: 'space-between',
             padding: '16px 20px',
-            background: 'rgba(15, 23, 42, 0.6)',
+            background: 'var(--bg-item)',
             borderRadius: 'var(--radius-md)',
             border: '1px solid var(--border-subtle)',
           }}>
             <div>
-              <div style={{ fontWeight: 600, color: '#f8fafc', fontSize: '0.95rem' }}>
+              <div style={{ fontWeight: 600, color: 'var(--text-main)', fontSize: '0.95rem' }}>
                 Allow AI Extraction & Clinical Analysis
               </div>
               <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)', marginTop: '2px' }}>
@@ -162,7 +162,7 @@ export default function PrivacyView() {
             </div>
             <input
               type="checkbox"
-              style={{ width: '20px', height: '20px', accentColor: '#06b6d4', cursor: 'pointer' }}
+              style={{ width: '20px', height: '20px', accentColor: 'var(--primary)', cursor: 'pointer' }}
               checked={consent.allow_ai_analysis}
               onChange={(e) => setConsent({ ...consent, allow_ai_analysis: e.target.checked })}
             />
@@ -174,12 +174,12 @@ export default function PrivacyView() {
             alignItems: 'center',
             justifyContent: 'space-between',
             padding: '16px 20px',
-            background: 'rgba(15, 23, 42, 0.6)',
+            background: 'var(--bg-item)',
             borderRadius: 'var(--radius-md)',
             border: '1px solid var(--border-subtle)',
           }}>
             <div>
-              <div style={{ fontWeight: 600, color: '#f8fafc', fontSize: '0.95rem' }}>
+              <div style={{ fontWeight: 600, color: 'var(--text-main)', fontSize: '0.95rem' }}>
                 Allow Doctor & Healthcare Professional Sharing
               </div>
               <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)', marginTop: '2px' }}>
@@ -188,7 +188,7 @@ export default function PrivacyView() {
             </div>
             <input
               type="checkbox"
-              style={{ width: '20px', height: '20px', accentColor: '#06b6d4', cursor: 'pointer' }}
+              style={{ width: '20px', height: '20px', accentColor: 'var(--primary)', cursor: 'pointer' }}
               checked={consent.allow_doctor_sharing}
               onChange={(e) => setConsent({ ...consent, allow_doctor_sharing: e.target.checked })}
             />
@@ -200,12 +200,12 @@ export default function PrivacyView() {
             alignItems: 'center',
             justifyContent: 'space-between',
             padding: '16px 20px',
-            background: 'rgba(15, 23, 42, 0.6)',
+            background: 'var(--bg-item)',
             borderRadius: 'var(--radius-md)',
             border: '1px solid var(--border-subtle)',
           }}>
             <div>
-              <div style={{ fontWeight: 600, color: '#f8fafc', fontSize: '0.95rem' }}>
+              <div style={{ fontWeight: 600, color: 'var(--text-main)', fontSize: '0.95rem' }}>
                 Allow Anonymized Wellness Research Insights
               </div>
               <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)', marginTop: '2px' }}>
@@ -214,7 +214,7 @@ export default function PrivacyView() {
             </div>
             <input
               type="checkbox"
-              style={{ width: '20px', height: '20px', accentColor: '#06b6d4', cursor: 'pointer' }}
+              style={{ width: '20px', height: '20px', accentColor: 'var(--primary)', cursor: 'pointer' }}
               checked={consent.allow_anonymized_insights}
               onChange={(e) => setConsent({ ...consent, allow_anonymized_insights: e.target.checked })}
             />
@@ -223,15 +223,15 @@ export default function PrivacyView() {
           {/* Data Retention */}
           <div style={{
             padding: '16px 20px',
-            background: 'rgba(15, 23, 42, 0.6)',
+            background: 'var(--bg-item)',
             borderRadius: 'var(--radius-md)',
             border: '1px solid var(--border-subtle)',
           }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px' }}>
-              <div style={{ fontWeight: 600, color: '#f8fafc', fontSize: '0.95rem' }}>
+              <div style={{ fontWeight: 600, color: 'var(--text-main)', fontSize: '0.95rem' }}>
                 Data Retention Period
               </div>
-              <strong style={{ color: '#06b6d4' }}>{consent.data_retention_days} Days</strong>
+              <strong style={{ color: 'var(--primary)' }}>{consent.data_retention_days} Days</strong>
             </div>
             <input
               type="range"
@@ -240,7 +240,7 @@ export default function PrivacyView() {
               step="30"
               value={consent.data_retention_days}
               onChange={(e) => setConsent({ ...consent, data_retention_days: parseInt(e.target.value, 10) })}
-              style={{ width: '100%', accentColor: '#06b6d4' }}
+              style={{ width: '100%', accentColor: 'var(--primary)' }}
             />
           </div>
         </div>
@@ -256,7 +256,7 @@ export default function PrivacyView() {
       <div className="glass-card" style={{ padding: '28px' }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '18px' }}>
           <div>
-            <h2 style={{ fontSize: '1.25rem', fontWeight: 700, margin: 0, color: '#f8fafc' }}>
+            <h2 style={{ fontSize: '1.25rem', fontWeight: 700, margin: 0, color: 'var(--text-main)' }}>
               Immutable Compliance Audit Trail
             </h2>
             <p style={{ margin: '4px 0 0', fontSize: '0.8rem', color: 'var(--text-muted)' }}>

@@ -76,7 +76,7 @@ export default function SnapshotView() {
       {/* Header */}
       <div style={{ marginBottom: '28px' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-          <h1 style={{ fontSize: '1.85rem', fontWeight: 800, margin: 0, color: '#f8fafc' }}>
+          <h1 style={{ fontSize: '1.85rem', fontWeight: 800, margin: 0, color: 'var(--text-main)' }}>
             360-Degree AI Health Snapshot
           </h1>
           <span className="badge badge-normal" style={{ fontSize: '0.75rem' }}>
@@ -92,12 +92,12 @@ export default function SnapshotView() {
       <div className="glass-card" style={{
         padding: '30px',
         marginBottom: '28px',
-        background: 'linear-gradient(135deg, rgba(6, 182, 212, 0.12) 0%, rgba(139, 92, 246, 0.08) 100%)',
-        border: '1px solid rgba(6, 182, 212, 0.3)',
+        background: 'var(--mint-surface)',
+        border: '1px solid var(--border-subtle)',
       }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '14px' }}>
-          <Sparkles size={24} color="#06b6d4" />
-          <h2 style={{ fontSize: '1.35rem', fontWeight: 700, margin: 0, color: '#f8fafc' }}>
+          <Sparkles size={24} color="var(--primary)" />
+          <h2 style={{ fontSize: '1.35rem', fontWeight: 700, margin: 0, color: 'var(--text-main)' }}>
             Executive Clinical Health Summary
           </h2>
         </div>
@@ -175,7 +175,7 @@ export default function SnapshotView() {
 
       {/* Prioritized Actionable Next Steps */}
       <div className="glass-card" style={{ padding: '28px' }}>
-        <h3 style={{ fontSize: '1.2rem', fontWeight: 700, margin: '0 0 18px', color: '#f8fafc' }}>
+        <h3 style={{ fontSize: '1.2rem', fontWeight: 700, margin: '0 0 18px', color: 'var(--text-main)' }}>
           Prioritized Actionable Next Steps
         </h3>
 
@@ -188,7 +188,7 @@ export default function SnapshotView() {
                 alignItems: 'center',
                 justifyContent: 'space-between',
                 padding: '16px 20px',
-                background: 'rgba(15, 23, 42, 0.6)',
+                background: 'var(--bg-item)',
                 borderRadius: 'var(--radius-md)',
                 border: '1px solid var(--border-subtle)',
                 flexWrap: 'wrap',
@@ -200,7 +200,7 @@ export default function SnapshotView() {
                   <span className="badge badge-active" style={{ fontSize: '0.65rem' }}>
                     {item.category}
                   </span>
-                  <strong style={{ color: '#f8fafc', fontSize: '0.95rem' }}>
+                  <strong style={{ color: 'var(--text-main)', fontSize: '0.95rem' }}>
                     {item.action}
                   </strong>
                 </div>

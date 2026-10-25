@@ -138,7 +138,7 @@ export default function ReportsView() {
       {/* Header */}
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '28px', flexWrap: 'wrap', gap: '16px' }}>
         <div>
-          <h1 style={{ fontSize: '1.85rem', fontWeight: 800, margin: 0, color: '#f8fafc' }}>
+          <h1 style={{ fontSize: '1.85rem', fontWeight: 800, margin: 0, color: 'var(--text-main)' }}>
             Medical Lab Reports & OCR Intelligence
           </h1>
           <p style={{ color: 'var(--text-muted)', fontSize: '0.9rem', margin: '4px 0 0' }}>
@@ -163,19 +163,19 @@ export default function ReportsView() {
               style={{
                 padding: '16px 20px',
                 minWidth: '280px',
-                borderColor: isSelected ? '#06b6d4' : 'var(--border-subtle)',
-                background: isSelected ? 'rgba(6, 182, 212, 0.1)' : 'var(--bg-card)',
+                borderColor: isSelected ? 'var(--primary)' : 'var(--border-subtle)',
+                background: isSelected ? 'var(--mint-surface)' : 'var(--bg-card)',
               }}
             >
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-                <span style={{ fontSize: '0.8rem', color: isSelected ? '#06b6d4' : 'var(--text-muted)', fontWeight: 700 }}>
+                <span style={{ fontSize: '0.8rem', color: isSelected ? 'var(--primary-deep)' : 'var(--text-muted)', fontWeight: 700 }}>
                   {r.report_type?.replace('_', ' ')}
                 </span>
                 <span className="badge badge-normal" style={{ fontSize: '0.65rem' }}>
                   {r.status}
                 </span>
               </div>
-              <div style={{ fontSize: '1rem', fontWeight: 700, color: '#f8fafc', margin: '6px 0 2px' }}>
+              <div style={{ fontSize: '1rem', fontWeight: 700, color: 'var(--text-main)', margin: '6px 0 2px' }}>
                 {r.lab_name || 'Metropolitan Diagnostics'}
               </div>
               <div style={{ fontSize: '0.78rem', color: 'var(--text-muted)', display: 'flex', alignItems: 'center', gap: '6px' }}>
@@ -191,7 +191,7 @@ export default function ReportsView() {
           {/* Sub Header & Navigation Tabs */}
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '16px', marginBottom: '20px' }}>
             <div>
-              <h2 style={{ fontSize: '1.4rem', fontWeight: 700, margin: 0, color: '#f8fafc' }}>
+              <h2 style={{ fontSize: '1.4rem', fontWeight: 700, margin: 0, color: 'var(--text-main)' }}>
                 {selectedReport.report_type?.replace('_', ' ')}
               </h2>
               <div style={{ fontSize: '0.82rem', color: 'var(--text-muted)', marginTop: '4px' }}>
@@ -200,7 +200,7 @@ export default function ReportsView() {
             </div>
 
             {/* Tabs */}
-            <div style={{ display: 'flex', background: 'rgba(15, 23, 42, 0.8)', padding: '4px', borderRadius: 'var(--radius-md)' }}>
+            <div style={{ display: 'flex', background: 'var(--bg-item)', padding: '4px', borderRadius: 'var(--radius-md)' }}>
               <button
                 onClick={() => setActiveTab('parameters')}
                 style={{
@@ -274,13 +274,13 @@ export default function ReportsView() {
                   <tbody>
                     {reportDetails.extracted_items?.map((item) => (
                       <tr key={item.id}>
-                        <td style={{ fontWeight: 600, color: '#f8fafc' }}>
+                        <td style={{ fontWeight: 600, color: 'var(--text-main)' }}>
                           {item.test_name}
                         </td>
                         <td style={{ fontFamily: 'JetBrains Mono', color: 'var(--text-muted)' }}>
                           {item.detected_value}
                         </td>
-                        <td style={{ fontFamily: 'JetBrains Mono', fontWeight: 700, color: '#06b6d4' }}>
+                        <td style={{ fontFamily: 'JetBrains Mono', fontWeight: 700, color: 'var(--primary)' }}>
                           {item.confirmed_value}
                         </td>
                         <td style={{ color: 'var(--text-muted)' }}>
@@ -315,15 +315,15 @@ export default function ReportsView() {
           {activeTab === 'explanation' && (
             <div>
               <div style={{
-                background: 'linear-gradient(135deg, rgba(6, 182, 212, 0.1) 0%, rgba(139, 92, 246, 0.05) 100%)',
+                background: 'var(--mint-surface)',
                 padding: '24px',
                 borderRadius: 'var(--radius-lg)',
-                border: '1px solid rgba(6, 182, 212, 0.2)',
+                border: '1px solid var(--border-subtle)',
                 marginBottom: '20px',
               }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '12px' }}>
-                  <Sparkles size={20} color="#06b6d4" />
-                  <h3 style={{ margin: 0, fontSize: '1.15rem', color: '#f8fafc' }}>
+                  <Sparkles size={20} color="var(--primary)" />
+                  <h3 style={{ margin: 0, fontSize: '1.15rem', color: 'var(--text-main)' }}>
                     AI Clinical Synthesis (Plain English)
                   </h3>
                 </div>
@@ -333,8 +333,8 @@ export default function ReportsView() {
               </div>
 
               <div className="grid-2">
-                <div style={{ background: 'rgba(15, 23, 42, 0.6)', padding: '20px', borderRadius: 'var(--radius-md)' }}>
-                  <h4 style={{ color: '#06b6d4', margin: '0 0 10px', fontSize: '1rem' }}>
+                <div style={{ background: 'var(--bg-item)', padding: '20px', borderRadius: 'var(--radius-md)', border: '1px solid var(--border-subtle)' }}>
+                  <h4 style={{ color: 'var(--primary-deep)', margin: '0 0 10px', fontSize: '1rem' }}>
                     Key Clinical Insights
                   </h4>
                   <ul style={{ paddingLeft: '20px', color: 'var(--text-muted)', fontSize: '0.9rem', lineHeight: 1.7 }}>
@@ -344,8 +344,8 @@ export default function ReportsView() {
                   </ul>
                 </div>
 
-                <div style={{ background: 'rgba(15, 23, 42, 0.6)', padding: '20px', borderRadius: 'var(--radius-md)' }}>
-                  <h4 style={{ color: '#8b5cf6', margin: '0 0 10px', fontSize: '1rem' }}>
+                <div style={{ background: 'var(--bg-item)', padding: '20px', borderRadius: 'var(--radius-md)', border: '1px solid var(--border-subtle)' }}>
+                  <h4 style={{ color: 'var(--primary)', margin: '0 0 10px', fontSize: '1rem' }}>
                     Questions for Your Doctor
                   </h4>
                   <ul style={{ paddingLeft: '20px', color: 'var(--text-muted)', fontSize: '0.9rem', lineHeight: 1.7 }}>
@@ -360,10 +360,10 @@ export default function ReportsView() {
           {/* Tab 3: Historical Delta Comparison */}
           {activeTab === 'comparison' && (
             <div>
-              <div style={{ background: 'rgba(15, 23, 42, 0.6)', padding: '20px', borderRadius: 'var(--radius-md)', marginBottom: '20px' }}>
+              <div style={{ background: 'var(--bg-item)', padding: '20px', borderRadius: 'var(--radius-md)', marginBottom: '20px', border: '1px solid var(--border-subtle)' }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '12px' }}>
                   <TrendingUp size={20} color="#10b981" />
-                  <h3 style={{ margin: 0, fontSize: '1.1rem', color: '#f8fafc' }}>
+                  <h3 style={{ margin: 0, fontSize: '1.1rem', color: 'var(--text-main)' }}>
                     Chronological Parameter Progression
                   </h3>
                 </div>
@@ -372,25 +372,25 @@ export default function ReportsView() {
                 </p>
 
                 <div className="grid-3" style={{ marginTop: '16px' }}>
-                  <div style={{ padding: '14px', background: 'rgba(2, 6, 23, 0.6)', borderRadius: 'var(--radius-sm)' }}>
+                  <div style={{ padding: '14px', background: 'var(--bg-card)', border: '1px solid var(--border-subtle)', borderRadius: 'var(--radius-sm)' }}>
                     <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>TOTAL CHOLESTEROL</span>
-                    <div style={{ fontSize: '1.3rem', fontWeight: 700, color: '#f8fafc', marginTop: '4px' }}>
+                    <div style={{ fontSize: '1.3rem', fontWeight: 700, color: 'var(--text-main)', marginTop: '4px' }}>
                       195 mg/dL <span style={{ fontSize: '0.8rem', color: '#10b981' }}>(-8 mg/dL ↓)</span>
                     </div>
                     <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Previous: 203 mg/dL</div>
                   </div>
 
-                  <div style={{ padding: '14px', background: 'rgba(2, 6, 23, 0.6)', borderRadius: 'var(--radius-sm)' }}>
+                  <div style={{ padding: '14px', background: 'var(--bg-card)', border: '1px solid var(--border-subtle)', borderRadius: 'var(--radius-sm)' }}>
                     <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>HDL CHOLESTEROL</span>
-                    <div style={{ fontSize: '1.3rem', fontWeight: 700, color: '#f8fafc', marginTop: '4px' }}>
+                    <div style={{ fontSize: '1.3rem', fontWeight: 700, color: 'var(--text-main)', marginTop: '4px' }}>
                       58 mg/dL <span style={{ fontSize: '0.8rem', color: '#10b981' }}>(+4 mg/dL ↑)</span>
                     </div>
                     <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Previous: 54 mg/dL</div>
                   </div>
 
-                  <div style={{ padding: '14px', background: 'rgba(2, 6, 23, 0.6)', borderRadius: 'var(--radius-sm)' }}>
+                  <div style={{ padding: '14px', background: 'var(--bg-card)', border: '1px solid var(--border-subtle)', borderRadius: 'var(--radius-sm)' }}>
                     <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>LDL CHOLESTEROL</span>
-                    <div style={{ fontSize: '1.3rem', fontWeight: 700, color: '#f8fafc', marginTop: '4px' }}>
+                    <div style={{ fontSize: '1.3rem', fontWeight: 700, color: 'var(--text-main)', marginTop: '4px' }}>
                       112 mg/dL <span style={{ fontSize: '0.8rem', color: '#fbbf24' }}>(-6 mg/dL ↓)</span>
                     </div>
                     <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Previous: 118 mg/dL</div>
@@ -406,7 +406,7 @@ export default function ReportsView() {
       {showSimulateModal && (
         <div className="modal-overlay">
           <div className="glass-card modal-card">
-            <h2 style={{ fontSize: '1.3rem', fontWeight: 700, marginBottom: '16px', color: '#f8fafc' }}>
+            <h2 style={{ fontSize: '1.3rem', fontWeight: 700, marginBottom: '16px', color: 'var(--text-main)' }}>
               Simulate Medical Report OCR
             </h2>
             <p style={{ color: 'var(--text-muted)', fontSize: '0.88rem', marginBottom: '16px' }}>

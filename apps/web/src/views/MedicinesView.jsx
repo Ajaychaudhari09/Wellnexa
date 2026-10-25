@@ -123,7 +123,7 @@ export default function MedicinesView() {
       {/* Header */}
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '28px', flexWrap: 'wrap', gap: '16px' }}>
         <div>
-          <h1 style={{ fontSize: '1.85rem', fontWeight: 800, margin: 0, color: '#f8fafc' }}>
+          <h1 style={{ fontSize: '1.85rem', fontWeight: 800, margin: 0, color: 'var(--text-main)' }}>
             Prescriptions & Medicine Manager
           </h1>
           <p style={{ color: 'var(--text-muted)', fontSize: '0.9rem', margin: '4px 0 0' }}>
@@ -141,8 +141,8 @@ export default function MedicinesView() {
         <div className="glass-card" style={{
           padding: '24px 32px',
           marginBottom: '28px',
-          background: 'linear-gradient(135deg, rgba(16, 185, 129, 0.1) 0%, rgba(15, 23, 42, 0.8) 100%)',
-          border: '1px solid rgba(16, 185, 129, 0.3)',
+          background: 'var(--mint-surface)',
+          border: '1px solid var(--border-subtle)',
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'space-between',
@@ -215,7 +215,7 @@ export default function MedicinesView() {
                   </span>
                 </div>
 
-                <h3 style={{ fontSize: '1.2rem', fontWeight: 700, margin: '0 0 4px', color: '#f8fafc' }}>
+                <h3 style={{ fontSize: '1.2rem', fontWeight: 700, margin: '0 0 4px', color: 'var(--text-main)' }}>
                   {med.name}
                 </h3>
                 <div style={{ fontSize: '0.85rem', color: 'var(--text-muted)', marginBottom: '16px' }}>
@@ -224,14 +224,15 @@ export default function MedicinesView() {
 
                 {/* Stock Bar */}
                 <div style={{
-                  background: 'rgba(15, 23, 42, 0.6)',
+                  background: 'var(--bg-item)',
                   padding: '12px 14px',
                   borderRadius: 'var(--radius-md)',
                   marginBottom: '18px',
+                  border: '1px solid var(--border-subtle)',
                 }}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.8rem', marginBottom: '6px' }}>
                     <span style={{ color: 'var(--text-muted)' }}>Stock Remaining</span>
-                    <strong style={{ color: isLowStock ? '#fbbf24' : '#f8fafc' }}>
+                    <strong style={{ color: isLowStock ? '#fbbf24' : 'var(--text-main)' }}>
                       {med.current_stock} units
                     </strong>
                   </div>
@@ -240,7 +241,7 @@ export default function MedicinesView() {
                       className="progress-bar-fill"
                       style={{
                         width: `${Math.min(100, (med.current_stock / 60) * 100)}%`,
-                        background: isLowStock ? '#f59e0b' : '#06b6d4',
+                        background: isLowStock ? '#f59e0b' : 'var(--primary)',
                       }}
                     />
                   </div>
@@ -287,7 +288,7 @@ export default function MedicinesView() {
       {showAddModal && (
         <div className="modal-overlay">
           <div className="glass-card modal-card">
-            <h2 style={{ fontSize: '1.3rem', fontWeight: 700, marginBottom: '16px', color: '#f8fafc' }}>
+            <h2 style={{ fontSize: '1.3rem', fontWeight: 700, marginBottom: '16px', color: 'var(--text-main)' }}>
               Add Prescribed Medication
             </h2>
             <form onSubmit={handleAddMedicine} style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>

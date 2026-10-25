@@ -213,6 +213,23 @@ async def seed_all():
             )
             db.add(grant)
 
+            # Appointments
+            from app.models.appointment import Appointment, AppointmentStatusEnum, AppointmentTypeEnum
+            app1 = Appointment(
+                user_id=patient.id,
+                doctor_name="Dr. Helen Cho, MD",
+                specialty="Cardiovascular & Preventive Medicine",
+                clinic_or_hospital="Metropolitan Health Institute",
+                location="Suite 405, East Wing",
+                appointment_date=date.today() + timedelta(days=3),
+                appointment_time="10:30 AM",
+                purpose="Follow-up on Lipid Profile (LDL evaluation) and blood pressure review",
+                notes="Please bring recent blood pressure logs and morning fasting state.",
+                status=AppointmentStatusEnum.CONFIRMED,
+                appointment_type=AppointmentTypeEnum.IN_PERSON,
+            )
+            db.add(app1)
+
             # Timeline Events
             t1 = HealthTimelineEvent(user_id=patient.id, category=TimelineCategoryEnum.CLINICAL, event_type=TimelineEventTypeEnum.REPORT_CONFIRMED, title="Lipid Profile Confirmed", summary="Total Cholesterol 195 mg/dL, HDL 58 mg/dL, LDL 112 mg/dL", occurred_at=now - timedelta(days=5))
             t2 = HealthTimelineEvent(user_id=patient.id, category=TimelineCategoryEnum.MEDICATION, event_type=TimelineEventTypeEnum.MEDICATION_STARTED, title="Prescription Started: Metformin & Omega-3", summary="Initiated daily routine for cardiovascular and metabolic balance", occurred_at=now - timedelta(days=14))

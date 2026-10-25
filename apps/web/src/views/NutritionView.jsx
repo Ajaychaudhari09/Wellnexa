@@ -151,7 +151,7 @@ export default function NutritionView() {
       {/* Header */}
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '28px', flexWrap: 'wrap', gap: '16px' }}>
         <div>
-          <h1 style={{ fontSize: '1.85rem', fontWeight: 800, margin: 0, color: '#f8fafc' }}>
+          <h1 style={{ fontSize: '1.85rem', fontWeight: 800, margin: 0, color: 'var(--text-main)' }}>
             Nutrition & AI Meal Planner
           </h1>
           <p style={{ color: 'var(--text-muted)', fontSize: '0.9rem', margin: '4px 0 0' }}>
@@ -169,7 +169,7 @@ export default function NutritionView() {
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px', flexWrap: 'wrap', gap: '12px' }}>
           <div>
             <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)', fontWeight: 700 }}>DAILY CALORIC INTAKE</span>
-            <div style={{ fontSize: '2.2rem', fontWeight: 800, color: '#f8fafc', marginTop: '4px' }}>
+            <div style={{ fontSize: '2.2rem', fontWeight: 800, color: 'var(--text-main)', marginTop: '4px' }}>
               {totalCalories} <span style={{ fontSize: '1.1rem', fontWeight: 500, color: 'var(--text-muted)' }}>/ {targetCalories} kcal</span>
             </div>
           </div>
@@ -190,7 +190,7 @@ export default function NutritionView() {
 
         {/* 3 Macros */}
         <div className="grid-3">
-          <div style={{ background: 'rgba(15, 23, 42, 0.6)', padding: '16px', borderRadius: 'var(--radius-md)' }}>
+          <div style={{ background: 'var(--bg-item)', padding: '16px', borderRadius: 'var(--radius-md)', border: '1px solid var(--border-subtle)' }}>
             <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>PROTEIN</span>
             <div style={{ fontSize: '1.4rem', fontWeight: 700, color: '#38bdf8', marginTop: '4px' }}>
               {protein} g <span style={{ fontSize: '0.8rem', color: 'var(--text-faint)' }}>/ 120 g</span>
@@ -200,7 +200,7 @@ export default function NutritionView() {
             </div>
           </div>
 
-          <div style={{ background: 'rgba(15, 23, 42, 0.6)', padding: '16px', borderRadius: 'var(--radius-md)' }}>
+          <div style={{ background: 'var(--bg-item)', padding: '16px', borderRadius: 'var(--radius-md)', border: '1px solid var(--border-subtle)' }}>
             <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>CARBOHYDRATES</span>
             <div style={{ fontSize: '1.4rem', fontWeight: 700, color: '#fbbf24', marginTop: '4px' }}>
               {carbs} g <span style={{ fontSize: '0.8rem', color: 'var(--text-faint)' }}>/ 240 g</span>
@@ -210,7 +210,7 @@ export default function NutritionView() {
             </div>
           </div>
 
-          <div style={{ background: 'rgba(15, 23, 42, 0.6)', padding: '16px', borderRadius: 'var(--radius-md)' }}>
+          <div style={{ background: 'var(--bg-item)', padding: '16px', borderRadius: 'var(--radius-md)', border: '1px solid var(--border-subtle)' }}>
             <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>HEALTHY FATS</span>
             <div style={{ fontSize: '1.4rem', fontWeight: 700, color: '#a78bfa', marginTop: '4px' }}>
               {fat} g <span style={{ fontSize: '0.8rem', color: 'var(--text-faint)' }}>/ 65 g</span>
@@ -229,7 +229,7 @@ export default function NutritionView() {
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
               <Droplets size={20} color="#3b82f6" />
-              <h2 style={{ fontSize: '1.2rem', fontWeight: 700, margin: 0, color: '#f8fafc' }}>
+              <h2 style={{ fontSize: '1.2rem', fontWeight: 700, margin: 0, color: 'var(--text-main)' }}>
                 Hydration Tracker
               </h2>
             </div>
@@ -264,8 +264,8 @@ export default function NutritionView() {
         <div className="glass-card" style={{ padding: '24px' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-              <Sparkles size={20} color="#06b6d4" />
-              <h2 style={{ fontSize: '1.2rem', fontWeight: 700, margin: 0, color: '#f8fafc' }}>
+              <Sparkles size={20} color="var(--primary)" />
+              <h2 style={{ fontSize: '1.2rem', fontWeight: 700, margin: 0, color: 'var(--text-main)' }}>
                 AI Meal Recommendation
               </h2>
             </div>
@@ -280,8 +280,9 @@ export default function NutritionView() {
                 style={{
                   fontSize: '0.75rem',
                   padding: '4px 10px',
-                  background: dietType === diet ? 'var(--primary)' : 'rgba(30, 41, 59, 0.6)',
-                  color: dietType === diet ? '#ffffff' : 'var(--text-muted)',
+                  background: dietType === diet ? 'var(--primary)' : 'var(--bg-item)',
+                  color: dietType === diet ? '#ffffff' : 'var(--text-main)',
+                  border: '1px solid var(--border-subtle)',
                 }}
               >
                 {diet}
@@ -295,13 +296,13 @@ export default function NutritionView() {
 
           {aiMealPlan ? (
             <div style={{
-              background: 'rgba(15, 23, 42, 0.8)',
+              background: 'var(--mint-surface)',
               padding: '16px',
               borderRadius: 'var(--radius-md)',
-              border: '1px solid rgba(6, 182, 212, 0.25)',
+              border: '1px solid var(--border-subtle)',
             }}>
-              <strong style={{ color: '#f8fafc', fontSize: '0.95rem' }}>{aiMealPlan.title}</strong>
-              <div style={{ fontSize: '0.8rem', color: '#06b6d4', margin: '4px 0' }}>
+              <strong style={{ color: 'var(--text-main)', fontSize: '0.95rem' }}>{aiMealPlan.title}</strong>
+              <div style={{ fontSize: '0.8rem', color: 'var(--primary-deep)', margin: '4px 0', fontWeight: 600 }}>
                 {aiMealPlan.calories} kcal • {aiMealPlan.macros}
               </div>
               <p style={{ fontSize: '0.78rem', color: 'var(--text-muted)', margin: '6px 0 0', lineHeight: 1.4 }}>
@@ -320,7 +321,7 @@ export default function NutritionView() {
       {showLogModal && (
         <div className="modal-overlay">
           <div className="glass-card modal-card">
-            <h2 style={{ fontSize: '1.3rem', fontWeight: 700, marginBottom: '16px', color: '#f8fafc' }}>
+            <h2 style={{ fontSize: '1.3rem', fontWeight: 700, marginBottom: '16px', color: 'var(--text-main)' }}>
               Log Meal / Food Item
             </h2>
             <form onSubmit={handleSaveMeal} style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>

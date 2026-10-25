@@ -126,7 +126,7 @@ export default function RemindersView() {
       {/* Header */}
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '28px', flexWrap: 'wrap', gap: '16px' }}>
         <div>
-          <h1 style={{ fontSize: '1.85rem', fontWeight: 800, margin: 0, color: '#f8fafc' }}>
+          <h1 style={{ fontSize: '1.85rem', fontWeight: 800, margin: 0, color: 'var(--text-main)' }}>
             Central Smart Reminder Engine
           </h1>
           <p style={{ color: 'var(--text-muted)', fontSize: '0.9rem', margin: '4px 0 0' }}>
@@ -149,9 +149,9 @@ export default function RemindersView() {
             style={{
               fontSize: '0.82rem',
               padding: '6px 14px',
-              background: filter === cat ? 'linear-gradient(135deg, #06b6d4 0%, #0284c7 100%)' : 'rgba(30, 41, 59, 0.6)',
-              color: filter === cat ? '#ffffff' : 'var(--text-muted)',
-              borderColor: filter === cat ? '#06b6d4' : 'var(--border-subtle)',
+              background: filter === cat ? 'var(--primary)' : 'var(--bg-item)',
+              color: filter === cat ? '#ffffff' : 'var(--text-main)',
+              borderColor: filter === cat ? 'var(--primary)' : 'var(--border-subtle)',
             }}
           >
             {cat}
@@ -182,7 +182,7 @@ export default function RemindersView() {
                   width: '40px',
                   height: '40px',
                   borderRadius: '10px',
-                  background: rem.is_completed ? 'rgba(16, 185, 129, 0.15)' : 'rgba(15, 23, 42, 0.8)',
+                  background: rem.is_completed ? 'var(--mint-surface)' : 'var(--bg-item)',
                   border: '1px solid var(--border-subtle)',
                   display: 'flex',
                   alignItems: 'center',
@@ -195,7 +195,7 @@ export default function RemindersView() {
                   <div style={{
                     fontSize: '1rem',
                     fontWeight: 600,
-                    color: rem.is_completed ? 'var(--text-muted)' : '#f8fafc',
+                    color: rem.is_completed ? 'var(--text-muted)' : 'var(--text-main)',
                     textDecoration: rem.is_completed ? 'line-through' : 'none',
                   }}>
                     {rem.title}
@@ -233,7 +233,7 @@ export default function RemindersView() {
       {showAddModal && (
         <div className="modal-overlay">
           <div className="glass-card modal-card">
-            <h2 style={{ fontSize: '1.3rem', fontWeight: 700, marginBottom: '16px', color: '#f8fafc' }}>
+            <h2 style={{ fontSize: '1.3rem', fontWeight: 700, marginBottom: '16px', color: 'var(--text-main)' }}>
               Create Smart Health Reminder
             </h2>
             <form onSubmit={handleAddReminder} style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>

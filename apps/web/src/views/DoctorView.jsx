@@ -142,7 +142,7 @@ export default function DoctorView({ currentRole }) {
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '28px', flexWrap: 'wrap', gap: '16px' }}>
         <div>
           <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-            <h1 style={{ fontSize: '1.85rem', fontWeight: 800, margin: 0, color: '#f8fafc' }}>
+            <h1 style={{ fontSize: '1.85rem', fontWeight: 800, margin: 0, color: 'var(--text-main)' }}>
               Doctor & Healthcare Professional Portal
             </h1>
             <span className="badge badge-normal" style={{ fontSize: '0.75rem' }}>
@@ -161,7 +161,7 @@ export default function DoctorView({ currentRole }) {
 
       {/* Patient Section: Active Clinical Access Grants */}
       <div className="glass-card" style={{ padding: '24px', marginBottom: '28px' }}>
-        <h2 style={{ fontSize: '1.2rem', fontWeight: 700, margin: '0 0 16px', color: '#f8fafc' }}>
+        <h2 style={{ fontSize: '1.2rem', fontWeight: 700, margin: '0 0 16px', color: 'var(--text-main)' }}>
           Active Patient Access Passes (Time-Bound)
         </h2>
 
@@ -172,13 +172,13 @@ export default function DoctorView({ currentRole }) {
               alignItems: 'center',
               justifyContent: 'space-between',
               padding: '16px 20px',
-              background: 'rgba(15, 23, 42, 0.6)',
+              background: 'var(--bg-item)',
               borderRadius: 'var(--radius-md)',
               border: '1px solid var(--border-subtle)',
             }}>
               <div>
-                <strong style={{ color: '#f8fafc', fontSize: '0.95rem' }}>
-                  Pass Token: <span style={{ fontFamily: 'JetBrains Mono', color: '#06b6d4' }}>DEMO-DOCTOR-ACCESS-PASS-2026</span>
+                <strong style={{ color: 'var(--text-main)', fontSize: '0.95rem' }}>
+                  Pass Token: <span style={{ fontFamily: 'JetBrains Mono', color: 'var(--primary)' }}>DEMO-DOCTOR-ACCESS-PASS-2026</span>
                 </strong>
                 <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)', marginTop: '4px' }}>
                   Scope: FULL_ACCESS • Duration: 24 Hours • Note: Demo Clinical Pass for Project Defense
@@ -195,14 +195,14 @@ export default function DoctorView({ currentRole }) {
                   alignItems: 'center',
                   justifyContent: 'space-between',
                   padding: '16px 20px',
-                  background: 'rgba(15, 23, 42, 0.6)',
+                  background: 'var(--bg-item)',
                   borderRadius: 'var(--radius-md)',
                   border: '1px solid var(--border-subtle)',
                 }}
               >
                 <div>
-                  <strong style={{ color: '#f8fafc', fontSize: '0.95rem' }}>
-                    Token: <span style={{ fontFamily: 'JetBrains Mono', color: '#06b6d4' }}>{g.access_token}</span>
+                  <strong style={{ color: 'var(--text-main)', fontSize: '0.95rem' }}>
+                    Token: <span style={{ fontFamily: 'JetBrains Mono', color: 'var(--primary)' }}>{g.access_token}</span>
                   </strong>
                   <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)', marginTop: '4px' }}>
                     Scope: {g.access_scope} • Expires: {g.expires_at} • Notes: {g.notes || 'Clinical consultation'}
@@ -226,10 +226,10 @@ export default function DoctorView({ currentRole }) {
       </div>
 
       {/* Doctor Interface Section: Review Patient Records & Append Consultation */}
-      <div className="glass-card" style={{ padding: '28px', border: '1px solid rgba(139, 92, 246, 0.3)' }}>
+      <div className="glass-card" style={{ padding: '28px', border: '1px solid var(--border-subtle)' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '18px' }}>
-          <Stethoscope size={22} color="#8b5cf6" />
-          <h2 style={{ fontSize: '1.25rem', fontWeight: 700, margin: 0, color: '#f8fafc' }}>
+          <Stethoscope size={22} color="var(--primary)" />
+          <h2 style={{ fontSize: '1.25rem', fontWeight: 700, margin: 0, color: 'var(--text-main)' }}>
             Physician Clinical Review Mode (Dr. Helen Cho)
           </h2>
         </div>
@@ -252,25 +252,25 @@ export default function DoctorView({ currentRole }) {
           <div>
             {/* Quick Summary of Authorized Patient Chart */}
             <div style={{
-              background: 'rgba(15, 23, 42, 0.8)',
+              background: 'var(--mint-surface)',
               padding: '20px',
               borderRadius: 'var(--radius-md)',
               border: '1px solid var(--border-subtle)',
               marginBottom: '24px',
             }}>
-              <h3 style={{ margin: '0 0 12px', fontSize: '1.05rem', color: '#f8fafc' }}>
+              <h3 style={{ margin: '0 0 12px', fontSize: '1.05rem', color: 'var(--text-main)' }}>
                 Authorized Patient Baseline: Bruce Wayne (Male, O+)
               </h3>
               <div className="grid-3" style={{ fontSize: '0.85rem' }}>
                 <div>
                   <span style={{ color: 'var(--text-faint)' }}>VITALS</span>
-                  <div style={{ color: '#f8fafc', fontWeight: 600, marginTop: '2px' }}>
+                  <div style={{ color: 'var(--text-main)', fontWeight: 600, marginTop: '2px' }}>
                     BP 118/78 • BMI 24.05 • HR 64 bpm
                   </div>
                 </div>
                 <div>
                   <span style={{ color: 'var(--text-faint)' }}>ACTIVE MEDICATIONS</span>
-                  <div style={{ color: '#f8fafc', fontWeight: 600, marginTop: '2px' }}>
+                  <div style={{ color: 'var(--text-main)', fontWeight: 600, marginTop: '2px' }}>
                     Metformin (500mg BID) • Omega-3 (1000mg QD)
                   </div>
                 </div>
@@ -329,7 +329,7 @@ export default function DoctorView({ currentRole }) {
       {showGrantModal && (
         <div className="modal-overlay">
           <div className="glass-card modal-card">
-            <h2 style={{ fontSize: '1.3rem', fontWeight: 700, marginBottom: '16px', color: '#f8fafc' }}>
+            <h2 style={{ fontSize: '1.3rem', fontWeight: 700, marginBottom: '16px', color: 'var(--text-main)' }}>
               Create Patient Access Pass
             </h2>
             <form onSubmit={handleCreateGrant} style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>

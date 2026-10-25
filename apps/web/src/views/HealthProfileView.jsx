@@ -143,7 +143,7 @@ export default function HealthProfileView() {
       {/* Header */}
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '28px', flexWrap: 'wrap', gap: '16px' }}>
         <div>
-          <h1 style={{ fontSize: '1.85rem', fontWeight: 800, margin: 0, color: '#f8fafc' }}>
+          <h1 style={{ fontSize: '1.85rem', fontWeight: 800, margin: 0, color: 'var(--text-main)' }}>
             Unified Health Profile & Vitals
           </h1>
           <p style={{ color: 'var(--text-muted)', fontSize: '0.9rem', margin: '4px 0 0' }}>
@@ -159,40 +159,40 @@ export default function HealthProfileView() {
       {/* Vitals Summary Card */}
       <div className="glass-card" style={{ padding: '24px', marginBottom: '28px' }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
-          <h2 style={{ fontSize: '1.2rem', fontWeight: 700, margin: 0, color: '#f8fafc' }}>
+          <h2 style={{ fontSize: '1.2rem', fontWeight: 700, margin: 0, color: 'var(--text-main)' }}>
             Biometric Vitals & Calculations
           </h2>
           <span className="badge badge-normal">Synchronized</span>
         </div>
 
         <div className="grid-4">
-          <div style={{ background: 'rgba(15, 23, 42, 0.6)', padding: '16px', borderRadius: 'var(--radius-md)' }}>
+          <div style={{ background: 'var(--bg-item)', padding: '16px', borderRadius: 'var(--radius-md)', border: '1px solid var(--border-subtle)' }}>
             <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>HEIGHT & WEIGHT</span>
-            <div style={{ fontSize: '1.4rem', fontWeight: 700, color: '#f8fafc', marginTop: '4px' }}>
+            <div style={{ fontSize: '1.4rem', fontWeight: 700, color: 'var(--text-main)', marginTop: '4px' }}>
               188 cm • 85 kg
             </div>
-            <div style={{ fontSize: '0.8rem', color: '#06b6d4' }}>BMI: 24.05 kg/m² (Normal)</div>
+            <div style={{ fontSize: '0.8rem', color: 'var(--primary)' }}>BMI: 24.05 kg/m² (Normal)</div>
           </div>
 
-          <div style={{ background: 'rgba(15, 23, 42, 0.6)', padding: '16px', borderRadius: 'var(--radius-md)' }}>
+          <div style={{ background: 'var(--bg-item)', padding: '16px', borderRadius: 'var(--radius-md)', border: '1px solid var(--border-subtle)' }}>
             <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>BLOOD PRESSURE</span>
-            <div style={{ fontSize: '1.4rem', fontWeight: 700, color: '#f8fafc', marginTop: '4px' }}>
+            <div style={{ fontSize: '1.4rem', fontWeight: 700, color: 'var(--text-main)', marginTop: '4px' }}>
               118 / 78 <span style={{ fontSize: '0.85rem' }}>mmHg</span>
             </div>
             <div style={{ fontSize: '0.8rem', color: '#10b981' }}>Normal Range</div>
           </div>
 
-          <div style={{ background: 'rgba(15, 23, 42, 0.6)', padding: '16px', borderRadius: 'var(--radius-md)' }}>
+          <div style={{ background: 'var(--bg-item)', padding: '16px', borderRadius: 'var(--radius-md)', border: '1px solid var(--border-subtle)' }}>
             <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>FASTING GLUCOSE</span>
-            <div style={{ fontSize: '1.4rem', fontWeight: 700, color: '#f8fafc', marginTop: '4px' }}>
+            <div style={{ fontSize: '1.4rem', fontWeight: 700, color: 'var(--text-main)', marginTop: '4px' }}>
               92.0 <span style={{ fontSize: '0.85rem' }}>mg/dL</span>
             </div>
             <div style={{ fontSize: '0.8rem', color: '#10b981' }}>Optimal Fasting</div>
           </div>
 
-          <div style={{ background: 'rgba(15, 23, 42, 0.6)', padding: '16px', borderRadius: 'var(--radius-md)' }}>
+          <div style={{ background: 'var(--bg-item)', padding: '16px', borderRadius: 'var(--radius-md)', border: '1px solid var(--border-subtle)' }}>
             <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>RESTING HEART RATE</span>
-            <div style={{ fontSize: '1.4rem', fontWeight: 700, color: '#f8fafc', marginTop: '4px' }}>
+            <div style={{ fontSize: '1.4rem', fontWeight: 700, color: 'var(--text-main)', marginTop: '4px' }}>
               64 <span style={{ fontSize: '0.85rem' }}>bpm</span>
             </div>
             <div style={{ fontSize: '0.8rem', color: '#10b981' }}>Athletic Range</div>
@@ -207,7 +207,7 @@ export default function HealthProfileView() {
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
               <ShieldAlert size={20} color="#f87171" />
-              <h2 style={{ fontSize: '1.15rem', fontWeight: 700, margin: 0, color: '#f8fafc' }}>
+              <h2 style={{ fontSize: '1.15rem', fontWeight: 700, margin: 0, color: 'var(--text-main)' }}>
                 Known Allergies & Contraindications
               </h2>
             </div>
@@ -228,13 +228,13 @@ export default function HealthProfileView() {
                     alignItems: 'center',
                     justifyContent: 'space-between',
                     padding: '12px 16px',
-                    background: 'rgba(15, 23, 42, 0.6)',
+                    background: 'var(--bg-item)',
                     borderRadius: 'var(--radius-md)',
                     border: '1px solid rgba(239, 68, 68, 0.25)',
                   }}
                 >
                   <div>
-                    <strong style={{ color: '#f8fafc', fontSize: '0.95rem' }}>{a.allergen}</strong>
+                    <strong style={{ color: 'var(--text-main)', fontSize: '0.95rem' }}>{a.allergen}</strong>
                     <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>
                       Reaction: {a.reaction || 'Severe anaphylaxis'}
                     </div>
@@ -250,8 +250,8 @@ export default function HealthProfileView() {
         <div className="glass-card" style={{ padding: '24px' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-              <FileText size={20} color="#06b6d4" />
-              <h2 style={{ fontSize: '1.15rem', fontWeight: 700, margin: 0, color: '#f8fafc' }}>
+              <FileText size={20} color="var(--primary)" />
+              <h2 style={{ fontSize: '1.15rem', fontWeight: 700, margin: 0, color: 'var(--text-main)' }}>
                 Chronic Medical Conditions
               </h2>
             </div>
@@ -269,13 +269,13 @@ export default function HealthProfileView() {
                     alignItems: 'center',
                     justifyContent: 'space-between',
                     padding: '12px 16px',
-                    background: 'rgba(15, 23, 42, 0.6)',
+                    background: 'var(--bg-item)',
                     borderRadius: 'var(--radius-md)',
                     border: '1px solid var(--border-subtle)',
                   }}
                 >
                   <div>
-                    <strong style={{ color: '#f8fafc', fontSize: '0.95rem' }}>{c.condition_name}</strong>
+                    <strong style={{ color: 'var(--text-main)', fontSize: '0.95rem' }}>{c.condition_name}</strong>
                     <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>
                       Diagnosed: {c.diagnosed_date || '2023-03-15'}
                     </div>
@@ -293,7 +293,7 @@ export default function HealthProfileView() {
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
             <Target size={20} color="#10b981" />
-            <h2 style={{ fontSize: '1.15rem', fontWeight: 700, margin: 0, color: '#f8fafc' }}>
+            <h2 style={{ fontSize: '1.15rem', fontWeight: 700, margin: 0, color: 'var(--text-main)' }}>
               Personal Health Goals & Progress
             </h2>
           </div>
@@ -312,7 +312,7 @@ export default function HealthProfileView() {
                 <div
                   key={g.id || g.title}
                   style={{
-                    background: 'rgba(15, 23, 42, 0.6)',
+                    background: 'var(--bg-item)',
                     padding: '16px 20px',
                     borderRadius: 'var(--radius-md)',
                     border: '1px solid var(--border-subtle)',
@@ -320,7 +320,7 @@ export default function HealthProfileView() {
                 >
                   <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px' }}>
                     <div>
-                      <strong style={{ color: '#f8fafc', fontSize: '1rem' }}>{g.title}</strong>
+                      <strong style={{ color: 'var(--text-main)', fontSize: '1rem' }}>{g.title}</strong>
                       <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)', marginLeft: '8px' }}>
                         ({g.current_value || 8500} / {g.target_value} {g.unit})
                       </span>
@@ -347,7 +347,7 @@ export default function HealthProfileView() {
       {showVitalsModal && (
         <div className="modal-overlay">
           <div className="glass-card modal-card">
-            <h2 style={{ fontSize: '1.3rem', fontWeight: 700, marginBottom: '16px', color: '#f8fafc' }}>
+            <h2 style={{ fontSize: '1.3rem', fontWeight: 700, marginBottom: '16px', color: 'var(--text-main)' }}>
               Record New Health Vitals
             </h2>
             <form onSubmit={handleSaveVitals} style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
@@ -431,7 +431,7 @@ export default function HealthProfileView() {
       {showAllergyModal && (
         <div className="modal-overlay">
           <div className="glass-card modal-card">
-            <h2 style={{ fontSize: '1.3rem', fontWeight: 700, marginBottom: '16px', color: '#f8fafc' }}>
+            <h2 style={{ fontSize: '1.3rem', fontWeight: 700, marginBottom: '16px', color: 'var(--text-main)' }}>
               Add Known Allergy
             </h2>
             <form onSubmit={handleSaveAllergy} style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
@@ -488,7 +488,7 @@ export default function HealthProfileView() {
       {showGoalModal && (
         <div className="modal-overlay">
           <div className="glass-card modal-card">
-            <h2 style={{ fontSize: '1.3rem', fontWeight: 700, marginBottom: '16px', color: '#f8fafc' }}>
+            <h2 style={{ fontSize: '1.3rem', fontWeight: 700, marginBottom: '16px', color: 'var(--text-main)' }}>
               Set New Health Goal
             </h2>
             <form onSubmit={handleSaveGoal} style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>

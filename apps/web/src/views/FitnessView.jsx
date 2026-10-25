@@ -120,7 +120,7 @@ export default function FitnessView() {
       {/* Header */}
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '28px', flexWrap: 'wrap', gap: '16px' }}>
         <div>
-          <h1 style={{ fontSize: '1.85rem', fontWeight: 800, margin: 0, color: '#f8fafc' }}>
+          <h1 style={{ fontSize: '1.85rem', fontWeight: 800, margin: 0, color: 'var(--text-main)' }}>
             Fitness & Daily Lifestyle
           </h1>
           <p style={{ color: 'var(--text-muted)', fontSize: '0.9rem', margin: '4px 0 0' }}>
@@ -139,13 +139,13 @@ export default function FitnessView() {
         <div className="glass-card" style={{ padding: '20px' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
             <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)', fontWeight: 600 }}>DAILY STEPS</span>
-            <Footprints size={18} color="#06b6d4" />
+            <Footprints size={18} color="var(--primary)" />
           </div>
-          <div style={{ fontSize: '2rem', fontWeight: 800, color: '#f8fafc', margin: '8px 0 4px' }}>
+          <div style={{ fontSize: '2rem', fontWeight: 800, color: 'var(--text-main)', margin: '8px 0 4px' }}>
             {steps.toLocaleString()} <span style={{ fontSize: '0.9rem', color: 'var(--text-muted)' }}>/ 10,000</span>
           </div>
           <div className="progress-bar-bg" style={{ marginTop: '8px' }}>
-            <div className="progress-bar-fill" style={{ width: `${Math.min(100, (steps / 10000) * 100)}%`, background: '#06b6d4' }} />
+            <div className="progress-bar-fill" style={{ width: `${Math.min(100, (steps / 10000) * 100)}%`, background: 'var(--primary)' }} />
           </div>
         </div>
 
@@ -197,7 +197,7 @@ export default function FitnessView() {
         {/* Workouts History */}
         <div className="glass-card" style={{ padding: '24px' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '18px' }}>
-            <h2 style={{ fontSize: '1.2rem', fontWeight: 700, margin: 0, color: '#f8fafc' }}>
+            <h2 style={{ fontSize: '1.2rem', fontWeight: 700, margin: 0, color: 'var(--text-main)' }}>
               Logged Workout Sessions
             </h2>
           </div>
@@ -214,7 +214,7 @@ export default function FitnessView() {
                     alignItems: 'center',
                     justifyContent: 'space-between',
                     padding: '14px 18px',
-                    background: 'rgba(15, 23, 42, 0.6)',
+                    background: 'var(--bg-item)',
                     borderRadius: 'var(--radius-md)',
                     border: '1px solid var(--border-subtle)',
                   }}
@@ -232,7 +232,7 @@ export default function FitnessView() {
                       <Dumbbell size={18} color="#f59e0b" />
                     </div>
                     <div>
-                      <div style={{ fontWeight: 600, color: '#f8fafc', fontSize: '0.95rem' }}>
+                      <div style={{ fontWeight: 600, color: 'var(--text-main)', fontSize: '0.95rem' }}>
                         {w.title}
                       </div>
                       <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>
@@ -253,7 +253,7 @@ export default function FitnessView() {
         {/* Habits Streaks */}
         <div className="glass-card" style={{ padding: '24px' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '18px' }}>
-            <h2 style={{ fontSize: '1.2rem', fontWeight: 700, margin: 0, color: '#f8fafc' }}>
+            <h2 style={{ fontSize: '1.2rem', fontWeight: 700, margin: 0, color: 'var(--text-main)' }}>
               Daily Habit Check-In Streaks
             </h2>
           </div>
@@ -271,13 +271,13 @@ export default function FitnessView() {
                   alignItems: 'center',
                   justifyContent: 'space-between',
                   padding: '14px 18px',
-                  background: 'rgba(15, 23, 42, 0.6)',
+                  background: 'var(--bg-item)',
                   borderRadius: 'var(--radius-md)',
                   border: '1px solid var(--border-subtle)',
                 }}
               >
                 <div>
-                  <div style={{ fontWeight: 600, color: '#f8fafc', fontSize: '0.95rem' }}>
+                  <div style={{ fontWeight: 600, color: 'var(--text-main)', fontSize: '0.95rem' }}>
                     {habit.title}
                   </div>
                   <div style={{ fontSize: '0.8rem', color: '#10b981', display: 'flex', alignItems: 'center', gap: '4px' }}>
@@ -310,7 +310,7 @@ export default function FitnessView() {
       {showWorkoutModal && (
         <div className="modal-overlay">
           <div className="glass-card modal-card">
-            <h2 style={{ fontSize: '1.3rem', fontWeight: 700, marginBottom: '16px', color: '#f8fafc' }}>
+            <h2 style={{ fontSize: '1.3rem', fontWeight: 700, marginBottom: '16px', color: 'var(--text-main)' }}>
               Log Workout Session
             </h2>
             <form onSubmit={handleSaveWorkout} style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>

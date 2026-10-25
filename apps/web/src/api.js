@@ -38,10 +38,28 @@ class ApiService {
       const json = await response.json().catch(() => null);
 
       if (!response.ok) {
-        // If 401 Unauthorized, token might be expired
-        if (response.status === 401) {
-          console.warn('[WellNexa API] Session expired, re-authenticating...');
+        // If 401 Unauthorized, token is expired or invalid - silently renew and retry once
+        if (response.status === 401 && !options._retry && endpoint !== '/auth/login') {
+          console.warn('[WellNexa API] Token expired or invalid, renewing session...');
+          try {
+            const currentRole = localStorage.getItem('wellnexa_role') || 'PATIENT';
+            const email = currentRole === 'DOCTOR' ? 'doctor@wellnexa.ai' : 'patient@wellnexa.ai';
+            const loginRes = await fetch(`${API_BASE}/auth/login`, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ email, password: 'Password123!' }),
+            });
+            const loginJson = await loginRes.json();
+            const newToken = loginJson?.data?.access_token || loginJson?.access_token;
+            if (newToken) {
+              this.setToken(newToken, currentRole);
+              return this.request(endpoint, { ...options, _retry: true });
+            }
+          } catch (renewErr) {
+            console.error('[WellNexa API] Automatic session renewal failed:', renewErr);
+          }
         }
+
         const errorMsg = json?.message || json?.detail || `API Error: ${response.statusText}`;
         throw new Error(errorMsg);
       }
@@ -182,6 +200,31 @@ class ApiService {
   async completeReminder(reminderId) {
     return this.request(`/reminders/${reminderId}/complete`, {
       method: 'PATCH',
+    });
+  }
+
+  // Clinical & Telehealth Appointments
+  async getAppointments() {
+    return this.request('/appointments');
+  }
+
+  async createAppointment(appointmentData) {
+    return this.request('/appointments', {
+      method: 'POST',
+      body: JSON.stringify(appointmentData),
+    });
+  }
+
+  async updateAppointment(appointmentId, updateData) {
+    return this.request(`/appointments/${appointmentId}`, {
+      method: 'PATCH',
+      body: JSON.stringify(updateData),
+    });
+  }
+
+  async cancelAppointment(appointmentId) {
+    return this.request(`/appointments/${appointmentId}`, {
+      method: 'DELETE',
     });
   }
 

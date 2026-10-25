@@ -93,6 +93,11 @@ from app.models.notification import (
     NotificationTypeEnum,
     NotificationPriorityEnum,
 )
+from app.models.appointment import (
+    Appointment,
+    AppointmentStatusEnum,
+    AppointmentTypeEnum,
+)
 
 __all__ = [
     "Base",
