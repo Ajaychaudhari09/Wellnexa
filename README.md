@@ -80,3 +80,55 @@ pytest -v
 
 ## 📖 Demonstration & Viva Guide
 For a step-by-step 10-minute project presentation script, refer to [`docs/DEMO_WALKTHROUGH.md`](docs/DEMO_WALKTHROUGH.md).
+
+
+## Architecture
+
+Modular monolith: Next.js (App Router) frontend -> FastAPI backend -> PostgreSQL + pgvector. A separate Python worker process runs an asyncio loop for reminders, emails, and grant expiry. OCR via Tesseract (pytesseract + pdf2image), AI via OpenAI SDK (key from env), encryption via AES-GCM (cryptography).
+
+## Setup from zero (docker-compose)
+
+`ash
+cp .env.example .env
+docker compose up -d --build
+`
+
+Services: postgres (pgvector), api (runs alembic upgrade head then uvicorn), worker (asyncio loop), web (Next.js).
+
+## Environment variables
+
+See .env.example. Key: DATABASE_URL, SYNC_DATABASE_URL, SECRET_KEY, OPENAI_API_KEY, LLM_PROVIDER, LLM_MODEL, EMBEDDING_MODEL, ENCRYPTION_KEY, SMTP_HOST/PORT/USER/PASSWORD/FROM, UPLOAD_DIR.
+
+## Seed data
+
+`ash
+docker compose exec api python -m app.db.seed_demo_data
+`
+
+## Migrations
+
+`ash
+docker compose exec api alembic upgrade head
+`
+
+## Worker
+
+Runs as worker service. Locally: cd backend && python -m app.worker
+
+## SMTP and LLM configuration
+
+Set SMTP_* to enable email; otherwise sends are skipped/logged (no health data).
+Set LLM_PROVIDER=openai and OPENAI_API_KEY for real LLM; default mock.
+RAG ingestion: cd backend && python -m app.services.rag_ingest
+
+## Tests
+
+`ash
+python scripts/run_tests.py
+`
+
+Playwright E2E: cd frontend && npx playwright install && npm run test:e2e
+
+## Deployment notes
+
+HTTPS in production via reverse proxy; secure cookies and CORS allow-list. Rotate encryption key via re-encryption script.
