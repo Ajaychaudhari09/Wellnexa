@@ -1,6 +1,7 @@
+'use client';
 import { useEffect, useState } from 'react';
-import { useRouter } from 'next/router';
-import api from '../lib/api';
+import { useRouter } from 'next/navigation';
+import api from '../../lib/api';
 
 export default function Profile() {
   const router = useRouter();
@@ -14,7 +15,7 @@ export default function Profile() {
   }, [router]);
   function calcBmi() {
     const h = parseFloat(form.height_cm) / 100; const w = parseFloat(form.weight_kg);
-    if (h > 0 && w > 0) setBmi((w / (h * h)).toFixed(2));
+    if (h > 0 && w > 0) setBmi((w / (h * h)).toFixed(1));
   }
   async function save(e) {
     e.preventDefault(); calcBmi();
@@ -32,9 +33,9 @@ export default function Profile() {
             <div className="col"><label className="label">Height (cm)</label><input className="input" type="number" value={form.height_cm} onChange={e => setForm({ ...form, height_cm: e.target.value })} onBlur={calcBmi} /></div>
             <div className="col"><label className="label">Weight (kg)</label><input className="input" type="number" value={form.weight_kg} onChange={e => setForm({ ...form, weight_kg: e.target.value })} onBlur={calcBmi} /></div>
           </div>
-          <p>BMI: <strong>{bmi || form.bmi || '—'}</strong></p>
+          <p>BMI: <strong>{bmi || form.bmi || '—'}</strong> <span className="badge">WHO adult categories</span></p>
           <label className="label">Blood pressure</label><input className="input" value={form.blood_pressure} onChange={e => setForm({ ...form, blood_pressure: e.target.value })} />
-          <label className="label">Glucose</label><input className="input" value={form.glucose} onChange={e => setForm({ ...form, glucose: e.target.value })} />
+          <label className="label">Fasting glucose (mg/dL)</label><input className="input" value={form.glucose} onChange={e => setForm({ ...form, glucose: e.target.value })} />
           <label className="label">Allergies</label><input className="input" value={form.allergies} onChange={e => setForm({ ...form, allergies: e.target.value })} />
           <label className="label">Lifestyle</label><input className="input" value={form.lifestyle} onChange={e => setForm({ ...form, lifestyle: e.target.value })} />
           <label className="label">Goals</label><input className="input" value={form.goals} onChange={e => setForm({ ...form, goals: e.target.value })} />

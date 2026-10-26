@@ -1,6 +1,7 @@
+'use client';
 import { useEffect, useState } from 'react';
-import { useRouter } from 'next/router';
-import api from '../lib/api';
+import { useRouter } from 'next/navigation';
+import api from '../../lib/api';
 
 export default function Assistant() {
   const router = useRouter();
@@ -15,8 +16,10 @@ export default function Assistant() {
     const question = q; setQ('');
     setMsgs(m => [...m, { role: 'user', text: question }]);
     try {
-      const data = await api.assistant(question);
-      setMsgs(m => [...m, { role: 'ai', text: (data.answer || data.response || JSON.stringify(data)) + '\n\nAI-generated, not medical advice.' }]);
+      const sess = await api.request('/assistant/sessions', { method: 'POST', body: JSON.stringify({}) });
+      const data = await api.request(`/assistant/sessions/${sess.id}/messages`, { method: 'POST', body: JSON.stringify({ content: question }) });
+      const answer = data?.content || data?.response || JSON.stringify(data);
+      setMsgs(m => [...m, { role: 'ai', text: answer + '\n\nAI-generated, not medical advice.' }]);
     } catch (e) { setMsgs(m => [...m, { role: 'ai', text: e.message }]); }
   }
   return (

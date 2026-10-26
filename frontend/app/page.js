@@ -1,5 +1,6 @@
+'use client';
 import { useState } from 'react';
-import { useRouter } from 'next/router';
+import { useRouter } from 'next/navigation';
 import api from '../lib/api';
 
 export default function Home() {
@@ -19,7 +20,6 @@ export default function Home() {
       if (mode === 'login') {
         const data = await api.login(email, password);
         api.setToken(data.access_token);
-        if (typeof window !== 'undefined') localStorage.setItem('wellnexa_role', data.role || role);
         router.push('/dashboard');
       } else {
         await api.register({ email, password, full_name: name, role });
