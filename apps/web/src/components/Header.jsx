@@ -1,8 +1,7 @@
-import React, { useState } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import {
   Activity,
   User,
-  Stethoscope,
   Sparkles,
   Sun,
   Moon,
@@ -11,27 +10,89 @@ import {
   Bell,
   CheckCircle2,
   Clock,
-  ShieldCheck
+  ShieldCheck,
+  LogOut,
+  Search,
+  ChevronDown,
+  Stethoscope,
+  HeartPulse,
+  Pill,
+  CalendarDays,
+  FileSpreadsheet
 } from 'lucide-react';
 
+const SEARCHABLE_MODULES = [
+  { id: 'dashboard', label: 'Overview Dashboard', category: 'General' },
+  { id: 'profile', label: 'Health Profile & Vitals', category: 'My Health' },
+  { id: 'reports', label: 'Medical Lab Reports & OCR', category: 'My Health' },
+  { id: 'medicines', label: 'Medicines & Inventory', category: 'Prescriptions' },
+  { id: 'reminders', label: 'Smart Health Reminders', category: 'Prescriptions' },
+  { id: 'appointments', label: 'Clinical Appointments & Telehealth', category: 'Visits' },
+  { id: 'nutrition', label: 'AI Nutrition & Meal Planner', category: 'Wellness' },
+  { id: 'fitness', label: 'Fitness & Lifestyle Tracking', category: 'Wellness' },
+  { id: 'wellness', label: 'Mental Wellness & Mood Journal', category: 'Wellness' },
+  { id: 'assistant', label: 'Grounded AI Health Assistant', category: 'AI Tools' },
+  { id: 'snapshot', label: '360° Health Synthesis', category: 'AI Tools' },
+  { id: 'privacy', label: 'Consent & Privacy Center', category: 'Security' },
+  { id: 'doctor', label: 'Physician Review Portal', category: 'Clinical', doctorOnly: true },
+];
+
 export default function Header({
-  currentRole,
-  onSwitchRole,
   currentUser,
+  currentRole,
+  onLogout,
+  onOpenProfile,
+  onOpenPrivacy,
   theme,
   onToggleTheme,
   mobileSidebarOpen,
   onToggleMobileSidebar,
   onOpenSnapshot,
-  onOpenAssistant
+  onOpenAssistant,
+  onSearchSelect
 }) {
   const [showNotifications, setShowNotifications] = useState(false);
+  const [showUserMenu, setShowUserMenu] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [showSearchDropdown, setShowSearchDropdown] = useState(false);
+
+  const searchRef = useRef(null);
+  const userMenuRef = useRef(null);
+
+  useEffect(() => {
+    const handleClickOutside = (e) => {
+      if (searchRef.current && !searchRef.current.contains(e.target)) {
+        setShowSearchDropdown(false);
+      }
+      if (userMenuRef.current && !userMenuRef.current.contains(e.target)) {
+        setShowUserMenu(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
 
   const notifications = [
     { id: 1, title: 'Medication Due', desc: 'Take Metformin (500mg) at 08:30 AM', time: '10m ago', icon: Clock },
     { id: 2, title: 'Lab Results Verified', desc: 'Annual Lipid Profile 2026 is confirmed', time: '1h ago', icon: CheckCircle2 },
-    { id: 3, title: 'Doctor Clinical Pass', desc: '24-hour pass active for Dr. Helen Cho', time: '3h ago', icon: ShieldCheck },
+    { id: 3, title: 'Clinical Review Ready', desc: 'Consultation notes updated by physician', time: '3h ago', icon: ShieldCheck },
   ];
+
+  const filteredModules = SEARCHABLE_MODULES.filter(m => {
+    if (m.doctorOnly && currentRole !== 'DOCTOR') return false;
+    return m.label.toLowerCase().includes(searchQuery.toLowerCase()) ||
+           m.category.toLowerCase().includes(searchQuery.toLowerCase());
+  });
+
+  const userName = currentUser
+    ? `${currentUser.first_name || 'Health'} ${currentUser.last_name || 'User'}`
+    : currentRole === 'DOCTOR' ? 'Dr. Helen Cho' : 'Bruce Wayne';
+
+  const userInitials = currentUser?.first_name
+    ? `${currentUser.first_name[0]}${currentUser.last_name ? currentUser.last_name[0] : ''}`
+    : currentRole === 'DOCTOR' ? 'HC' : 'BW';
+
+  const userEmail = currentUser?.email || (currentRole === 'DOCTOR' ? 'doctor@wellnexa.ai' : 'patient@wellnexa.ai');
 
   return (
     <header style={{
@@ -46,10 +107,11 @@ export default function Header({
       top: 0,
       zIndex: 50,
       boxShadow: 'var(--shadow-card)',
+      gap: '16px',
     }}>
       {/* Left: Mobile Menu Toggle + Logo */}
-      <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
-        {/* Mobile Hamburger (visible on screens <= 1024px) */}
+      <div style={{ display: 'flex', alignItems: 'center', gap: '14px', flexShrink: 0 }}>
+        {/* Mobile Hamburger */}
         <button
           onClick={onToggleMobileSidebar}
           className="btn-secondary mobile-menu-btn"
@@ -80,17 +142,104 @@ export default function Header({
               </span>
               <span className="badge badge-active" style={{ fontSize: '0.65rem', padding: '2px 7px' }}>
                 <span style={{ width: '6px', height: '6px', borderRadius: '50%', background: '#10b981', display: 'inline-block' }} />
-                LIVE: 8000
+                CONNECTED
               </span>
             </div>
-            <p className="header-subtitle" style={{ fontSize: '0.75rem', color: 'var(--text-muted)', margin: 0 }}>
+            <p className="header-subtitle" style={{ fontSize: '0.74rem', color: 'var(--text-muted)', margin: 0 }}>
               One Platform. Your Complete Health Journey.
             </p>
           </div>
         </div>
       </div>
 
-      {/* Right: Quick actions, Theme toggle, Role switcher, User profile */}
+      {/* Center: Global Feature Quick-Search / Jump Bar (Desktop) */}
+      <div ref={searchRef} className="hide-on-mobile" style={{ flex: 1, maxWidth: '420px', position: 'relative' }}>
+        <div style={{
+          display: 'flex',
+          alignItems: 'center',
+          gap: '8px',
+          background: 'var(--bg-item)',
+          border: '1px solid var(--border-subtle)',
+          borderRadius: 'var(--radius-md)',
+          padding: '7px 12px',
+        }}>
+          <Search size={15} color="var(--text-muted)" />
+          <input
+            type="text"
+            placeholder="Search features (reports, meds, vitals)..."
+            value={searchQuery}
+            onChange={(e) => {
+              setSearchQuery(e.target.value);
+              setShowSearchDropdown(true);
+            }}
+            onFocus={() => setShowSearchDropdown(true)}
+            style={{
+              background: 'transparent',
+              border: 'none',
+              outline: 'none',
+              fontSize: '0.82rem',
+              color: 'var(--text-main)',
+              width: '100%',
+            }}
+          />
+        </div>
+
+        {/* Search Results Dropdown */}
+        {showSearchDropdown && (
+          <div style={{
+            position: 'absolute',
+            top: '42px',
+            left: 0,
+            right: 0,
+            background: 'var(--bg-card)',
+            backdropFilter: 'blur(16px)',
+            border: '1px solid var(--border-subtle)',
+            borderRadius: 'var(--radius-md)',
+            boxShadow: 'var(--shadow-dropdown)',
+            padding: '8px',
+            zIndex: 110,
+            maxHeight: '280px',
+            overflowY: 'auto',
+          }}>
+            <span style={{ fontSize: '0.7rem', color: 'var(--text-faint)', fontWeight: 700, padding: '4px 8px', display: 'block', textTransform: 'uppercase' }}>
+              Jump to Feature
+            </span>
+            {filteredModules.length === 0 ? (
+              <div style={{ padding: '8px 12px', fontSize: '0.8rem', color: 'var(--text-muted)' }}>
+                No features found matching "{searchQuery}"
+              </div>
+            ) : (
+              filteredModules.map((m) => (
+                <div
+                  key={m.id}
+                  onClick={() => {
+                    if (onSearchSelect) onSearchSelect(m.id);
+                    setShowSearchDropdown(false);
+                    setSearchQuery('');
+                  }}
+                  style={{
+                    padding: '8px 12px',
+                    borderRadius: 'var(--radius-sm)',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'space-between',
+                    cursor: 'pointer',
+                    fontSize: '0.84rem',
+                    color: 'var(--text-main)',
+                  }}
+                  onMouseEnter={(e) => e.currentTarget.style.background = 'var(--bg-item)'}
+                  onMouseLeave={(e) => e.currentTarget.style.background = 'transparent'}
+                >
+                  <span style={{ fontWeight: 600 }}>{m.label}</span>
+                  <span className="badge badge-normal" style={{ fontSize: '0.65rem' }}>{m.category}</span>
+                </div>
+              ))
+            )}
+          </div>
+        )}
+      </div>
+
+      {/* Right: Quick actions, Theme toggle, Notifications, User profile dropdown */}
       <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
         {/* Quick Snapshot button */}
         <button
@@ -121,19 +270,14 @@ export default function Header({
             padding: '8px 10px',
             borderRadius: '10px',
             color: 'var(--text-main)',
-            position: 'relative',
           }}
           title={theme === 'dark' ? 'Switch to Day Mode (Light)' : 'Switch to Night Mode (Dark)'}
           aria-label="Toggle Theme"
         >
-          {theme === 'dark' ? (
-            <Sun size={18} color="#f59e0b" />
-          ) : (
-            <Moon size={18} color="#6366f1" />
-          )}
+          {theme === 'dark' ? <Sun size={18} color="#f59e0b" /> : <Moon size={18} color="#6366f1" />}
         </button>
 
-        {/* Notification Bell with Badge & Dropdown */}
+        {/* Notification Bell */}
         <div style={{ position: 'relative' }}>
           <button
             onClick={() => setShowNotifications(!showNotifications)}
@@ -187,7 +331,7 @@ export default function Header({
                         gap: '10px',
                       }}
                     >
-                      <Icon size={16} color="#06b6d4" style={{ marginTop: '2px', flexShrink: 0 }} />
+                      <Icon size={16} color="var(--primary)" style={{ marginTop: '2px', flexShrink: 0 }} />
                       <div>
                         <div style={{ fontSize: '0.82rem', fontWeight: 600, color: 'var(--text-main)' }}>{n.title}</div>
                         <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>{n.desc}</div>
@@ -201,82 +345,135 @@ export default function Header({
           )}
         </div>
 
-        {/* Role Switcher */}
-        <div style={{
-          display: 'flex',
-          alignItems: 'center',
-          background: 'var(--bg-item)',
-          padding: '3px',
-          borderRadius: '12px',
-          border: '1px solid var(--border-subtle)',
-        }}>
+        {/* User Profile Menu (Replaces the doctor/patient toggle!) */}
+        <div ref={userMenuRef} style={{ position: 'relative' }}>
           <button
-            onClick={() => onSwitchRole('PATIENT')}
+            onClick={() => setShowUserMenu(!showUserMenu)}
             style={{
-              padding: '5px 10px',
-              borderRadius: '8px',
-              border: 'none',
-              background: currentRole === 'PATIENT' ? 'linear-gradient(135deg, #06b6d4 0%, #0284c7 100%)' : 'transparent',
-              color: currentRole === 'PATIENT' ? '#ffffff' : 'var(--text-muted)',
-              fontSize: '0.78rem',
-              fontWeight: 600,
-              cursor: 'pointer',
               display: 'flex',
               alignItems: 'center',
-              gap: '5px',
-            }}
-          >
-            <User size={13} />
-            <span className="hide-on-mobile">Patient</span>
-          </button>
-          <button
-            onClick={() => onSwitchRole('DOCTOR')}
-            style={{
-              padding: '5px 10px',
-              borderRadius: '8px',
-              border: 'none',
-              background: currentRole === 'DOCTOR' ? 'linear-gradient(135deg, #8b5cf6 0%, #6366f1 100%)' : 'transparent',
-              color: currentRole === 'DOCTOR' ? '#ffffff' : 'var(--text-muted)',
-              fontSize: '0.78rem',
-              fontWeight: 600,
+              gap: '8px',
+              background: 'var(--bg-item)',
+              border: '1px solid var(--border-subtle)',
+              borderRadius: 'var(--radius-md)',
+              padding: '4px 10px 4px 6px',
               cursor: 'pointer',
-              display: 'flex',
-              alignItems: 'center',
-              gap: '5px',
             }}
           >
-            <Stethoscope size={13} />
-            <span className="hide-on-mobile">Doctor</span>
-          </button>
-        </div>
-
-        {/* User Avatar & Name */}
-        {currentUser && (
-          <div className="hide-on-mobile" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
             <div style={{
-              width: '34px',
-              height: '34px',
+              width: '32px',
+              height: '32px',
               borderRadius: '50%',
-              background: currentRole === 'DOCTOR' ? 'rgba(139, 92, 246, 0.2)' : 'rgba(6, 182, 212, 0.2)',
-              border: `1px solid ${currentRole === 'DOCTOR' ? 'var(--violet)' : 'var(--primary)'}`,
+              background: currentRole === 'DOCTOR' ? '#8b5cf6' : 'var(--primary)',
+              color: '#ffffff',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
               fontWeight: 700,
-              fontSize: '0.8rem',
-              color: 'var(--text-main)',
+              fontSize: '0.78rem',
             }}>
-              {currentRole === 'DOCTOR' ? 'HC' : 'BW'}
+              {userInitials}
             </div>
-          </div>
-        )}
+
+            <div className="hide-on-mobile" style={{ textAlign: 'left' }}>
+              <div style={{ fontSize: '0.82rem', fontWeight: 700, color: 'var(--text-main)', lineHeight: 1.2 }}>
+                {userName}
+              </div>
+              <span style={{ fontSize: '0.68rem', color: currentRole === 'DOCTOR' ? '#8b5cf6' : 'var(--primary-deep)', fontWeight: 600 }}>
+                {currentRole === 'DOCTOR' ? 'Physician' : 'Patient'}
+              </span>
+            </div>
+
+            <ChevronDown size={14} color="var(--text-muted)" />
+          </button>
+
+          {/* User Menu Dropdown */}
+          {showUserMenu && (
+            <div style={{
+              position: 'absolute',
+              right: 0,
+              top: '46px',
+              width: '230px',
+              background: 'var(--bg-card)',
+              backdropFilter: 'blur(16px)',
+              border: '1px solid var(--border-subtle)',
+              borderRadius: 'var(--radius-md)',
+              boxShadow: 'var(--shadow-dropdown)',
+              padding: '10px 8px',
+              zIndex: 100,
+            }}>
+              <div style={{ padding: '6px 10px 10px', borderBottom: '1px solid var(--border-subtle)', marginBottom: '6px' }}>
+                <div style={{ fontSize: '0.85rem', fontWeight: 700, color: 'var(--text-main)' }}>{userName}</div>
+                <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)' }}>{userEmail}</div>
+              </div>
+
+              <button
+                onClick={() => {
+                  setShowUserMenu(false);
+                  if (onOpenProfile) onOpenProfile();
+                }}
+                className="btn-secondary"
+                style={{
+                  width: '100%',
+                  textAlign: 'left',
+                  justifyContent: 'flex-start',
+                  border: 'none',
+                  padding: '8px 10px',
+                  fontSize: '0.82rem',
+                }}
+              >
+                <User size={15} color="var(--primary)" />
+                <span>My Profile & Account</span>
+              </button>
+
+              <button
+                onClick={() => {
+                  setShowUserMenu(false);
+                  if (onOpenPrivacy) onOpenPrivacy();
+                }}
+                className="btn-secondary"
+                style={{
+                  width: '100%',
+                  textAlign: 'left',
+                  justifyContent: 'flex-start',
+                  border: 'none',
+                  padding: '8px 10px',
+                  fontSize: '0.82rem',
+                }}
+              >
+                <ShieldCheck size={15} color="#10b981" />
+                <span>Privacy & Consent</span>
+              </button>
+
+              <div style={{ borderTop: '1px solid var(--border-subtle)', margin: '6px 0' }} />
+
+              <button
+                onClick={() => {
+                  setShowUserMenu(false);
+                  if (onLogout) onLogout();
+                }}
+                className="btn-danger"
+                style={{
+                  width: '100%',
+                  textAlign: 'left',
+                  justifyContent: 'flex-start',
+                  padding: '8px 10px',
+                  fontSize: '0.82rem',
+                }}
+              >
+                <LogOut size={15} />
+                <span>Log Out of Session</span>
+              </button>
+            </div>
+          )}
+        </div>
       </div>
 
       <style>{`
         @media (min-width: 1025px) {
           .mobile-menu-btn { display: none !important; }
         }
-        @media (max-width: 768px) {
+        @media (max-width: 860px) {
           .hide-on-mobile { display: none !important; }
           .header-subtitle { display: none !important; }
         }

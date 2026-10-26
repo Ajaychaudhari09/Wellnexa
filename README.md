@@ -57,12 +57,15 @@ uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
 ```
 Interactive API documentation: `http://localhost:8000/docs`
 
-### 5. Run Flutter Mobile / Web App
+### 5. Run Next.js Frontend (Website)
 ```bash
-cd apps/mobile
-flutter pub get
-flutter run
+cd frontend
+npm install
+npm run dev
 ```
+Open `http://localhost:3000`. The frontend proxies `/api/*` to the backend at `http://127.0.0.1:8000`.
+
+> Note: A legacy Flutter mobile client exists under `apps/mobile` and a Vite web client under `apps/web`; the supported website for this spec is the Next.js app in `/frontend`.
 
 ---
 

@@ -14,27 +14,79 @@ import {
   ShieldCheck,
   ChevronRight,
   CalendarDays,
+  User,
+  LogOut,
   X
 } from 'lucide-react';
 
-const PATIENT_NAV_ITEMS = [
-  { id: 'dashboard', label: 'Overview', icon: LayoutDashboard, aliases: ['dashboard'] },
-  { id: 'my_health', label: 'My Health', icon: HeartPulse, aliases: ['my_health', 'profile', 'reports'] },
-  { id: 'meds_reminders', label: 'Medicines & Reminders', icon: Pill, aliases: ['meds_reminders', 'medicines', 'reminders'] },
-  { id: 'appointments', label: 'Appointments', icon: CalendarDays, aliases: ['appointments'] },
-  { id: 'wellness', label: 'Wellness Hub', icon: Flame, aliases: ['wellness', 'nutrition', 'fitness'] },
-  { id: 'assistant', label: 'AI Health Assistant', icon: BotMessageSquare, highlight: true, aliases: ['assistant', 'snapshot'] },
-  { id: 'privacy', label: 'Settings & Privacy', icon: ShieldCheck, aliases: ['privacy'] },
+const PATIENT_NAV_SECTIONS = [
+  {
+    title: 'OVERVIEW',
+    items: [
+      { id: 'dashboard', label: 'Overview Dashboard', icon: LayoutDashboard },
+    ],
+  },
+  {
+    title: 'HEALTH RECORDS',
+    items: [
+      { id: 'profile', label: 'Health Profile & Vitals', icon: HeartPulse },
+      { id: 'reports', label: 'Lab Reports & OCR', icon: FileSpreadsheet },
+    ],
+  },
+  {
+    title: 'SCHEDULES & VISITS',
+    items: [
+      { id: 'medicines', label: 'Prescriptions & Meds', icon: Pill },
+      { id: 'reminders', label: 'Smart Reminders', icon: BellRing },
+      { id: 'appointments', label: 'Appointments & Visits', icon: CalendarDays },
+    ],
+  },
+  {
+    title: 'WELLNESS & LIFESTYLE',
+    items: [
+      { id: 'nutrition', label: 'AI Nutrition & Diet', icon: UtensilsCrossed },
+      { id: 'fitness', label: 'Fitness & Activity', icon: Flame },
+      { id: 'wellness', label: 'Mental Wellness', icon: Smile },
+    ],
+  },
+  {
+    title: 'CLINICAL AI',
+    items: [
+      { id: 'assistant', label: 'AI Health Assistant', icon: BotMessageSquare, highlight: true },
+      { id: 'snapshot', label: '360° Health Synthesis', icon: Sparkles },
+    ],
+  },
+  {
+    title: 'ACCOUNT & PRIVACY',
+    items: [
+      { id: 'profile_account', label: 'My Account Profile', icon: User },
+      { id: 'privacy', label: 'Settings & Privacy', icon: ShieldCheck },
+    ],
+  },
 ];
 
-const DOCTOR_NAV_ITEMS = [
-  { id: 'doctor', label: 'Clinical Portal', icon: Stethoscope, highlight: true, aliases: ['doctor'] },
-  { id: 'appointments', label: 'Patient Consultations', icon: CalendarDays, aliases: ['appointments'] },
-  { id: 'privacy', label: 'Compliance & Audit', icon: ShieldCheck, aliases: ['privacy'] },
+const DOCTOR_NAV_SECTIONS = [
+  {
+    title: 'PHYSICIAN WORKSPACE',
+    items: [
+      { id: 'doctor', label: 'Clinical Review Portal', icon: Stethoscope, highlight: true },
+      { id: 'appointments', label: 'Patient Consultations', icon: CalendarDays },
+      { id: 'profile_account', label: 'Physician Profile', icon: User },
+      { id: 'privacy', label: 'Compliance & Audit', icon: ShieldCheck },
+    ],
+  },
 ];
 
-export default function Sidebar({ activeTab, onSelectTab, currentRole, mobileOpen, onCloseMobile }) {
-  const items = currentRole === 'DOCTOR' ? DOCTOR_NAV_ITEMS : PATIENT_NAV_ITEMS;
+export default function Sidebar({
+  activeTab,
+  onSelectTab,
+  currentRole,
+  currentUser,
+  onLogout,
+  mobileOpen,
+  onCloseMobile
+}) {
+  const sections = currentRole === 'DOCTOR' ? DOCTOR_NAV_SECTIONS : PATIENT_NAV_SECTIONS;
 
   const handleItemClick = (id) => {
     onSelectTab(id);
@@ -71,7 +123,7 @@ export default function Sidebar({ activeTab, onSelectTab, currentRole, mobileOpe
           height: 'calc(100vh - 65px)',
           position: 'sticky',
           top: '65px',
-          padding: '20px 14px',
+          padding: '16px 12px',
           overflowY: 'auto',
           zIndex: 95,
           transition: 'transform 0.3s cubic-bezier(0.16, 1, 0.3, 1), background-color 0.25s',
@@ -81,7 +133,7 @@ export default function Sidebar({ activeTab, onSelectTab, currentRole, mobileOpe
           display: 'flex',
           justifyContent: 'space-between',
           alignItems: 'center',
-          padding: '0 10px 12px',
+          padding: '0 8px 12px',
         }}>
           <span style={{
             fontSize: '0.72rem',
@@ -90,7 +142,7 @@ export default function Sidebar({ activeTab, onSelectTab, currentRole, mobileOpe
             color: 'var(--text-faint)',
             fontWeight: 700,
           }}>
-            {currentRole === 'DOCTOR' ? 'Physician Workspace' : 'Health Journey'}
+            {currentRole === 'DOCTOR' ? 'PHYSICIAN WORKSPACE' : 'HEALTHCARE NAVIGATION'}
           </span>
 
           {mobileOpen && (
@@ -104,74 +156,109 @@ export default function Sidebar({ activeTab, onSelectTab, currentRole, mobileOpe
           )}
         </div>
 
-        <nav style={{ display: 'flex', flexDirection: 'column', gap: '5px', flex: 1 }}>
-          {items.map((item) => {
-            const Icon = item.icon;
-            const isActive = item.aliases ? item.aliases.includes(activeTab) : activeTab === item.id;
-            return (
-              <button
-                key={item.id}
-                onClick={() => handleItemClick(item.id)}
-                style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'space-between',
-                  padding: '11px 14px',
-                  borderRadius: 'var(--radius-md)',
-                  border: 'none',
-                  background: isActive
-                    ? 'linear-gradient(90deg, var(--mint-surface) 0%, rgba(209, 250, 229, 0.3) 100%)'
-                    : 'transparent',
-                  color: isActive ? 'var(--primary-deep)' : 'var(--text-muted)',
-                  fontWeight: isActive ? 700 : 500,
-                  fontSize: '0.88rem',
-                  cursor: 'pointer',
-                  textAlign: 'left',
-                  borderLeft: isActive ? '3px solid var(--primary)' : '3px solid transparent',
-                  transition: 'all 0.15s ease',
-                }}
-                onMouseEnter={(e) => {
-                  if (!isActive) e.currentTarget.style.background = 'var(--btn-secondary-bg)';
-                }}
-                onMouseLeave={(e) => {
-                  if (!isActive) e.currentTarget.style.background = 'transparent';
-                }}
-              >
-                <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                  <Icon size={18} color={isActive ? 'var(--primary)' : 'currentColor'} />
-                  <span>{item.label}</span>
-                </div>
-                {item.highlight && !isActive && (
-                  <span style={{
-                    width: '6px',
-                    height: '6px',
-                    borderRadius: '50%',
-                    background: 'var(--primary)',
-                    boxShadow: '0 0 8px var(--primary)',
-                  }} />
-                )}
-                {isActive && <ChevronRight size={14} color="var(--primary)" />}
-              </button>
-            );
-          })}
+        {/* Navigation Sections */}
+        <nav style={{ display: 'flex', flexDirection: 'column', gap: '14px', flex: 1 }}>
+          {sections.map((section, sIdx) => (
+            <div key={sIdx}>
+              <div style={{
+                fontSize: '0.66rem',
+                textTransform: 'uppercase',
+                letterSpacing: '0.07em',
+                color: 'var(--text-faint)',
+                fontWeight: 700,
+                padding: '4px 10px',
+                marginBottom: '2px',
+              }}>
+                {section.title}
+              </div>
+
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '3px' }}>
+                {section.items.map((item) => {
+                  const Icon = item.icon;
+                  const isActive = activeTab === item.id;
+                  return (
+                    <button
+                      key={item.id}
+                      onClick={() => handleItemClick(item.id)}
+                      style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'space-between',
+                        padding: '9px 12px',
+                        borderRadius: 'var(--radius-md)',
+                        border: 'none',
+                        background: isActive
+                          ? 'linear-gradient(90deg, var(--mint-surface) 0%, rgba(209, 250, 229, 0.4) 100%)'
+                          : 'transparent',
+                        color: isActive ? 'var(--primary-deep)' : 'var(--text-muted)',
+                        fontWeight: isActive ? 700 : 500,
+                        fontSize: '0.85rem',
+                        cursor: 'pointer',
+                        textAlign: 'left',
+                        borderLeft: isActive ? '3px solid var(--primary)' : '3px solid transparent',
+                        transition: 'all 0.15s ease',
+                      }}
+                      onMouseEnter={(e) => {
+                        if (!isActive) e.currentTarget.style.background = 'var(--btn-secondary-bg)';
+                      }}
+                      onMouseLeave={(e) => {
+                        if (!isActive) e.currentTarget.style.background = 'transparent';
+                      }}
+                    >
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                        <Icon size={17} color={isActive ? 'var(--primary)' : 'currentColor'} />
+                        <span>{item.label}</span>
+                      </div>
+                      {item.highlight && !isActive && (
+                        <span style={{
+                          width: '6px',
+                          height: '6px',
+                          borderRadius: '50%',
+                          background: 'var(--primary)',
+                          boxShadow: '0 0 8px var(--primary)',
+                        }} />
+                      )}
+                      {isActive && <ChevronRight size={14} color="var(--primary)" />}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+          ))}
         </nav>
 
+        {/* User Card & Logout at Bottom */}
         <div style={{
-          padding: '14px',
+          padding: '12px',
           background: 'var(--bg-item)',
           borderRadius: 'var(--radius-md)',
           border: '1px solid var(--border-subtle)',
           marginTop: '16px',
+          display: 'flex',
+          flexDirection: 'column',
+          gap: '8px',
         }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '6px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
             <span style={{ width: '8px', height: '8px', borderRadius: '50%', background: '#10b981' }} />
-            <span style={{ fontSize: '0.78rem', fontWeight: 600, color: 'var(--text-main)' }}>
-              MCA Capstone Active
+            <span style={{ fontSize: '0.78rem', fontWeight: 700, color: 'var(--text-main)' }}>
+              {currentUser?.email || (currentRole === 'DOCTOR' ? 'doctor@wellnexa.ai' : 'patient@wellnexa.ai')}
             </span>
           </div>
-          <p style={{ fontSize: '0.72rem', color: 'var(--text-muted)', margin: 0, lineHeight: 1.4 }}>
-            Full OCR, RAG LLM, and Clinical Safety Engine connected.
-          </p>
+
+          <button
+            onClick={onLogout}
+            className="btn-danger"
+            style={{
+              padding: '6px 10px',
+              fontSize: '0.76rem',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              gap: '6px',
+            }}
+          >
+            <LogOut size={13} /> Sign Out
+          </button>
         </div>
       </aside>
 

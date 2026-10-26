@@ -79,4 +79,7 @@ node_modules/
 apps/web/node_modules/
 apps/web/dist/
 .vite/
+frontend/node_modules/
+frontend/.next/
+frontend/out/
 

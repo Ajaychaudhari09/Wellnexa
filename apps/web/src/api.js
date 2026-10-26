@@ -4,19 +4,33 @@ const API_BASE = '/api/v1';
 class ApiService {
   constructor() {
     this.token = localStorage.getItem('wellnexa_token') || null;
-    this.currentRole = localStorage.getItem('wellnexa_role') || 'PATIENT';
+    this.currentRole = localStorage.getItem('wellnexa_role') || null;
+    this.currentUser = null;
+    try {
+      const stored = localStorage.getItem('wellnexa_user');
+      if (stored) this.currentUser = JSON.parse(stored);
+    } catch (e) {
+      this.currentUser = null;
+    }
   }
 
-  setToken(token, role = 'PATIENT') {
+  setSession(token, role = 'PATIENT', user = null) {
     this.token = token;
     this.currentRole = role;
+    this.currentUser = user;
     if (token) {
       localStorage.setItem('wellnexa_token', token);
       localStorage.setItem('wellnexa_role', role);
+      if (user) localStorage.setItem('wellnexa_user', JSON.stringify(user));
     } else {
       localStorage.removeItem('wellnexa_token');
       localStorage.removeItem('wellnexa_role');
+      localStorage.removeItem('wellnexa_user');
     }
+  }
+
+  setToken(token, role = 'PATIENT') {
+    this.setSession(token, role, this.currentUser);
   }
 
   async request(endpoint, options = {}) {
@@ -38,25 +52,12 @@ class ApiService {
       const json = await response.json().catch(() => null);
 
       if (!response.ok) {
-        // If 401 Unauthorized, token is expired or invalid - silently renew and retry once
-        if (response.status === 401 && !options._retry && endpoint !== '/auth/login') {
-          console.warn('[WellNexa API] Token expired or invalid, renewing session...');
-          try {
-            const currentRole = localStorage.getItem('wellnexa_role') || 'PATIENT';
-            const email = currentRole === 'DOCTOR' ? 'doctor@wellnexa.ai' : 'patient@wellnexa.ai';
-            const loginRes = await fetch(`${API_BASE}/auth/login`, {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({ email, password: 'Password123!' }),
-            });
-            const loginJson = await loginRes.json();
-            const newToken = loginJson?.data?.access_token || loginJson?.access_token;
-            if (newToken) {
-              this.setToken(newToken, currentRole);
-              return this.request(endpoint, { ...options, _retry: true });
-            }
-          } catch (renewErr) {
-            console.error('[WellNexa API] Automatic session renewal failed:', renewErr);
+        if (response.status === 401) {
+          // Token expired or invalid: clear session and notify app
+          console.warn('[WellNexa API] 401 Unauthorized encountered for:', endpoint);
+          this.setSession(null, null, null);
+          if (typeof window !== 'undefined') {
+            window.dispatchEvent(new CustomEvent('wellnexa:unauthorized'));
           }
         }
 
@@ -71,19 +72,74 @@ class ApiService {
     }
   }
 
-  // Auth
-  async login(email = 'patient@wellnexa.ai', password = 'Password123!') {
+  // Auth Operations
+  async login(email, password) {
     const data = await this.request('/auth/login', {
       method: 'POST',
       body: JSON.stringify({ email, password }),
     });
-    const role = email.includes('doctor') ? 'DOCTOR' : 'PATIENT';
-    this.setToken(data.access_token, role);
-    return data;
+
+    const accessToken = data.access_token;
+    // Set token temporarily to fetch authenticated profile details
+    this.token = accessToken;
+    let me = null;
+    try {
+      me = await this.getMe();
+    } catch (e) {
+      console.warn('Could not fetch /auth/me after login:', e);
+    }
+
+    const isDoctor = email.toLowerCase().includes('doctor') ||
+      (me?.roles && me.roles.some(r => r.toUpperCase().includes('DOCTOR')));
+    const role = isDoctor ? 'DOCTOR' : 'PATIENT';
+
+    this.setSession(accessToken, role, me);
+    return { token: accessToken, role, user: me };
+  }
+
+  async register({ email, password, first_name, last_name, role = 'PATIENT' }) {
+    const res = await this.request('/auth/register', {
+      method: 'POST',
+      body: JSON.stringify({
+        email,
+        password,
+        first_name,
+        last_name,
+        role: role.toUpperCase(),
+      }),
+    });
+
+    // Auto-login newly registered user
+    return this.login(email, password);
+  }
+
+  async logout() {
+    try {
+      if (this.token) {
+        await this.request('/auth/logout', {
+          method: 'POST',
+          body: JSON.stringify({ refresh_token: 'dummy_revoke' }),
+        }).catch(() => null);
+      }
+    } finally {
+      this.setSession(null, null, null);
+    }
   }
 
   async getMe() {
     return this.request('/auth/me');
+  }
+
+  // Personal Profile
+  async getProfile() {
+    return this.request('/profile/me');
+  }
+
+  async updateProfile(profileData) {
+    return this.request('/profile/me', {
+      method: 'PUT',
+      body: JSON.stringify(profileData),
+    });
   }
 
   // Dashboard

@@ -1,6 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import Header from './components/Header';
 import Sidebar from './components/Sidebar';
+import LandingView from './views/LandingView';
+import AuthModal from './views/AuthModal';
+import ProfileView from './views/ProfileView';
 import DashboardView from './views/DashboardView';
 import HealthProfileView from './views/HealthProfileView';
 import ReportsView from './views/ReportsView';
@@ -20,16 +23,21 @@ import {
   HeartPulse,
   Pill,
   FileSpreadsheet,
-  BotMessageSquare
+  BotMessageSquare,
+  CalendarDays
 } from 'lucide-react';
 
 export default function App() {
-  const [activeTab, setActiveTab] = useState('dashboard');
-  const [currentRole, setCurrentRole] = useState(localStorage.getItem('wellnexa_role') || 'PATIENT');
   const [currentUser, setCurrentUser] = useState(null);
+  const [currentRole, setCurrentRole] = useState(null);
+  const [activeTab, setActiveTab] = useState('dashboard');
   const [theme, setTheme] = useState(localStorage.getItem('wellnexa_theme') || 'light');
   const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
   const [initializing, setInitializing] = useState(true);
+
+  // Auth Modal State
+  const [showAuthModal, setShowAuthModal] = useState(false);
+  const [authMode, setAuthMode] = useState('signin'); // 'signin' or 'signup'
 
   // Apply theme to HTML root element
   useEffect(() => {
@@ -41,111 +49,125 @@ export default function App() {
     setTheme((prev) => (prev === 'dark' ? 'light' : 'dark'));
   };
 
-  const initAuth = async (roleToUse = currentRole) => {
+  // Check existing session on boot
+  useEffect(() => {
+    const checkSession = async () => {
+      try {
+        setInitializing(true);
+        if (api.token) {
+          const me = await api.getMe();
+          if (me) {
+            setCurrentUser(me);
+            const isDoc = me.roles && me.roles.some(r => r.toUpperCase().includes('DOCTOR'));
+            const role = isDoc ? 'DOCTOR' : (localStorage.getItem('wellnexa_role') || 'PATIENT');
+            setCurrentRole(role);
+          } else {
+            api.setSession(null, null, null);
+            setCurrentUser(null);
+            setCurrentRole(null);
+          }
+        } else {
+          setCurrentUser(null);
+          setCurrentRole(null);
+        }
+      } catch (err) {
+        console.warn('Session check failed, staying on landing page:', err);
+        api.setSession(null, null, null);
+        setCurrentUser(null);
+        setCurrentRole(null);
+      } finally {
+        setInitializing(false);
+      }
+    };
+
+    checkSession();
+
+    // Listen for unauthorized 401 events from api.js
+    const handleUnauthorized = () => {
+      setCurrentUser(null);
+      setCurrentRole(null);
+      setActiveTab('dashboard');
+    };
+
+    window.addEventListener('wellnexa:unauthorized', handleUnauthorized);
+    return () => window.removeEventListener('wellnexa:unauthorized', handleUnauthorized);
+  }, []);
+
+  // Auth Handlers
+  const handleAuthSuccess = (user, role) => {
+    setCurrentUser(user);
+    setCurrentRole(role || 'PATIENT');
+    setActiveTab(role === 'DOCTOR' ? 'doctor' : 'dashboard');
+    setShowAuthModal(false);
+  };
+
+  const handleLogout = async () => {
+    try {
+      await api.logout();
+    } finally {
+      setCurrentUser(null);
+      setCurrentRole(null);
+      setActiveTab('dashboard');
+    }
+  };
+
+  const handleQuickDemoPatient = async () => {
     try {
       setInitializing(true);
-      const email = roleToUse === 'DOCTOR' ? 'doctor@wellnexa.ai' : 'patient@wellnexa.ai';
-      await api.login(email, 'Password123!');
-      const me = await api.getMe().catch(() => null);
-      setCurrentUser(me);
-      setCurrentRole(roleToUse);
+      const res = await api.login('patient@wellnexa.ai', 'Password123!');
+      handleAuthSuccess(res.user, 'PATIENT');
     } catch (err) {
-      console.warn('Auto-login initialization fallback:', err);
+      alert('Demo patient sign-in failed: ' + err.message);
     } finally {
       setInitializing(false);
     }
   };
 
-  useEffect(() => {
-    initAuth();
-  }, []);
-
-  const handleSwitchRole = (newRole) => {
-    initAuth(newRole);
-  };
-
-  const [subTab, setSubTab] = useState({
-    my_health: 'profile',
-    meds_reminders: 'medicines',
-    wellness: 'nutrition',
-    assistant: 'assistant',
-  });
-
-  const handleNavigate = (tab, targetSubTab) => {
-    if (tab === 'profile' || tab === 'reports') {
-      setActiveTab('my_health');
-      setSubTab(prev => ({ ...prev, my_health: tab }));
-    } else if (tab === 'medicines' || tab === 'reminders') {
-      setActiveTab('meds_reminders');
-      setSubTab(prev => ({ ...prev, meds_reminders: tab }));
-    } else if (tab === 'nutrition' || tab === 'fitness' || tab === 'wellness') {
-      setActiveTab('wellness');
-      setSubTab(prev => ({ ...prev, wellness: tab }));
-    } else if (tab === 'assistant' || tab === 'snapshot') {
-      setActiveTab('assistant');
-      setSubTab(prev => ({ ...prev, assistant: tab }));
-    } else {
-      setActiveTab(tab);
-      if (targetSubTab) {
-        setSubTab(prev => ({ ...prev, [tab]: targetSubTab }));
-      }
+  const handleQuickDemoDoctor = async () => {
+    try {
+      setInitializing(true);
+      const res = await api.login('doctor@wellnexa.ai', 'Password123!');
+      handleAuthSuccess(res.user, 'DOCTOR');
+    } catch (err) {
+      alert('Demo physician sign-in failed: ' + err.message);
+    } finally {
+      setInitializing(false);
     }
   };
 
+  // Render View by Active Tab
   const renderActiveView = () => {
     switch (activeTab) {
       case 'dashboard':
-        return <DashboardView onNavigate={handleNavigate} />;
+        return <DashboardView onNavigate={setActiveTab} />;
 
-      case 'my_health':
       case 'profile':
-      case 'reports': {
-        const currentHealthSub = activeTab === 'profile' ? 'profile' : activeTab === 'reports' ? 'reports' : (subTab.my_health || 'profile');
         return (
           <div className="page-wrapper" style={{ paddingTop: '16px' }}>
-            <div className="subnav-pill-container">
-              <button
-                onClick={() => setSubTab(prev => ({ ...prev, my_health: 'profile' }))}
-                className={`subnav-pill ${currentHealthSub === 'profile' ? 'active' : ''}`}
-              >
-                Health Profile & Vitals
-              </button>
-              <button
-                onClick={() => setSubTab(prev => ({ ...prev, my_health: 'reports' }))}
-                className={`subnav-pill ${currentHealthSub === 'reports' ? 'active' : ''}`}
-              >
-                Medical Reports & OCR Analyzer
-              </button>
-            </div>
-            {currentHealthSub === 'profile' ? <HealthProfileView /> : <ReportsView />}
+            <HealthProfileView />
           </div>
         );
-      }
 
-      case 'meds_reminders':
-      case 'medicines':
-      case 'reminders': {
-        const currentMedsSub = activeTab === 'medicines' ? 'medicines' : activeTab === 'reminders' ? 'reminders' : (subTab.meds_reminders || 'medicines');
+      case 'reports':
         return (
           <div className="page-wrapper" style={{ paddingTop: '16px' }}>
-            <div className="subnav-pill-container">
-              <button
-                onClick={() => setSubTab(prev => ({ ...prev, meds_reminders: 'medicines' }))}
-                className={`subnav-pill ${currentMedsSub === 'medicines' ? 'active' : ''}`}
-              >
-                Prescriptions & Inventory
-              </button>
-              <button
-                onClick={() => setSubTab(prev => ({ ...prev, meds_reminders: 'reminders' }))}
-                className={`subnav-pill ${currentMedsSub === 'reminders' ? 'active' : ''}`}
-              >
-                Smart Health Reminders
-              </button>
-            </div>
-            {currentMedsSub === 'medicines' ? <MedicinesView /> : <RemindersView />}
+            <ReportsView />
           </div>
         );
-      }
+
+      case 'medicines':
+        return (
+          <div className="page-wrapper" style={{ paddingTop: '16px' }}>
+            <MedicinesView />
+          </div>
+        );
+
+      case 'reminders':
+        return (
+          <div className="page-wrapper" style={{ paddingTop: '16px' }}>
+            <RemindersView />
+          </div>
+        );
 
       case 'appointments':
         return (
@@ -154,62 +176,40 @@ export default function App() {
           </div>
         );
 
-      case 'wellness':
       case 'nutrition':
-      case 'fitness': {
-        const currentWellnessSub = activeTab === 'nutrition' ? 'nutrition' : activeTab === 'fitness' ? 'fitness' : (subTab.wellness || 'nutrition');
         return (
           <div className="page-wrapper" style={{ paddingTop: '16px' }}>
-            <div className="subnav-pill-container">
-              <button
-                onClick={() => setSubTab(prev => ({ ...prev, wellness: 'nutrition' }))}
-                className={`subnav-pill ${currentWellnessSub === 'nutrition' ? 'active' : ''}`}
-              >
-                AI Nutrition Planner
-              </button>
-              <button
-                onClick={() => setSubTab(prev => ({ ...prev, wellness: 'fitness' }))}
-                className={`subnav-pill ${currentWellnessSub === 'fitness' ? 'active' : ''}`}
-              >
-                Fitness & Lifestyle
-              </button>
-              <button
-                onClick={() => setSubTab(prev => ({ ...prev, wellness: 'wellness' }))}
-                className={`subnav-pill ${currentWellnessSub === 'wellness' ? 'active' : ''}`}
-              >
-                Mental Wellness & Journal
-              </button>
-            </div>
-            {currentWellnessSub === 'nutrition' && <NutritionView />}
-            {currentWellnessSub === 'fitness' && <FitnessView />}
-            {currentWellnessSub === 'wellness' && <WellnessView />}
+            <NutritionView />
           </div>
         );
-      }
+
+      case 'fitness':
+        return (
+          <div className="page-wrapper" style={{ paddingTop: '16px' }}>
+            <FitnessView />
+          </div>
+        );
+
+      case 'wellness':
+        return (
+          <div className="page-wrapper" style={{ paddingTop: '16px' }}>
+            <WellnessView />
+          </div>
+        );
 
       case 'assistant':
-      case 'snapshot': {
-        const currentAiSub = activeTab === 'snapshot' ? 'snapshot' : (subTab.assistant || 'assistant');
         return (
           <div className="page-wrapper" style={{ paddingTop: '16px' }}>
-            <div className="subnav-pill-container">
-              <button
-                onClick={() => setSubTab(prev => ({ ...prev, assistant: 'assistant' }))}
-                className={`subnav-pill ${currentAiSub === 'assistant' ? 'active' : ''}`}
-              >
-                Clinical AI Consultation
-              </button>
-              <button
-                onClick={() => setSubTab(prev => ({ ...prev, assistant: 'snapshot' }))}
-                className={`subnav-pill ${currentAiSub === 'snapshot' ? 'active' : ''}`}
-              >
-                360° Health Synthesis
-              </button>
-            </div>
-            {currentAiSub === 'assistant' ? <AssistantView /> : <SnapshotView />}
+            <AssistantView />
           </div>
         );
-      }
+
+      case 'snapshot':
+        return (
+          <div className="page-wrapper" style={{ paddingTop: '16px' }}>
+            <SnapshotView />
+          </div>
+        );
 
       case 'doctor':
         return <DoctorView currentRole={currentRole} />;
@@ -217,67 +217,113 @@ export default function App() {
       case 'privacy':
         return <PrivacyView />;
 
+      case 'profile_account':
+        return (
+          <ProfileView
+            currentUser={currentUser}
+            currentRole={currentRole}
+            onLogout={handleLogout}
+            onNavigate={setActiveTab}
+          />
+        );
+
       default:
-        return <DashboardView onNavigate={handleNavigate} />;
+        return <DashboardView onNavigate={setActiveTab} />;
     }
   };
 
+  // 1. Initial Loading Screen
+  if (initializing) {
+    return (
+      <div style={{
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: 'center',
+        justifyContent: 'center',
+        minHeight: '100vh',
+        background: 'var(--bg-app)',
+        gap: '16px',
+      }}>
+        <div style={{
+          width: '48px',
+          height: '48px',
+          borderRadius: '50%',
+          border: '3px solid var(--border-subtle)',
+          borderTopColor: 'var(--primary)',
+          animation: 'spin 0.8s linear infinite',
+        }} />
+        <div style={{ fontSize: '1rem', fontWeight: 700, color: 'var(--text-main)' }}>
+          Connecting to WellNexa Clinical Engine...
+        </div>
+      </div>
+    );
+  }
+
+  // 2. Unauthenticated Visitor -> Public Landing Page + Auth Modal
+  // STRICT AUTH GUARD: "no one other logged person access any thing"
+  if (!currentUser) {
+    return (
+      <div>
+        <LandingView
+          onOpenAuth={(mode) => {
+            setAuthMode(mode || 'signin');
+            setShowAuthModal(true);
+          }}
+          onQuickDemoPatient={handleQuickDemoPatient}
+          onQuickDemoDoctor={handleQuickDemoDoctor}
+          theme={theme}
+          onToggleTheme={handleToggleTheme}
+        />
+
+        <AuthModal
+          isOpen={showAuthModal}
+          initialMode={authMode}
+          onClose={() => setShowAuthModal(false)}
+          onAuthSuccess={handleAuthSuccess}
+        />
+      </div>
+    );
+  }
+
+  // 3. Authenticated User -> Full Integrated Healthcare Application
   return (
     <div>
       <div className="app-bg-glow" />
+
+      {/* Global Authenticated Header (No doctor/patient switch toggle!) */}
       <Header
-        currentRole={currentRole}
-        onSwitchRole={handleSwitchRole}
         currentUser={currentUser}
+        currentRole={currentRole}
+        onLogout={handleLogout}
+        onOpenProfile={() => setActiveTab('profile_account')}
+        onOpenPrivacy={() => setActiveTab('privacy')}
         theme={theme}
         onToggleTheme={handleToggleTheme}
         mobileSidebarOpen={mobileSidebarOpen}
         onToggleMobileSidebar={() => setMobileSidebarOpen(!mobileSidebarOpen)}
-        onOpenSnapshot={() => handleNavigate('assistant', 'snapshot')}
-        onOpenAssistant={() => handleNavigate('assistant', 'assistant')}
+        onOpenSnapshot={() => setActiveTab('snapshot')}
+        onOpenAssistant={() => setActiveTab('assistant')}
+        onSearchSelect={(tabId) => setActiveTab(tabId)}
       />
 
       <div className="app-container">
+        {/* Direct, Categorized Sidebar Navigation */}
         <Sidebar
           activeTab={activeTab}
-          onSelectTab={handleNavigate}
+          onSelectTab={setActiveTab}
           currentRole={currentRole}
+          currentUser={currentUser}
+          onLogout={handleLogout}
           mobileOpen={mobileSidebarOpen}
           onCloseMobile={() => setMobileSidebarOpen(false)}
         />
 
         <main className="main-content" style={{ paddingBottom: '70px' }}>
-          {initializing ? (
-            <div style={{
-              display: 'flex',
-              flexDirection: 'column',
-              alignItems: 'center',
-              justifyContent: 'center',
-              minHeight: '65vh',
-              gap: '16px',
-            }}>
-              <div style={{
-                width: '44px',
-                height: '44px',
-                borderRadius: '50%',
-                border: '3px solid var(--border-subtle)',
-                borderTopColor: 'var(--primary)',
-                animation: 'spin 0.8s linear infinite',
-              }} />
-              <div style={{ fontSize: '0.95rem', fontWeight: 700, color: 'var(--text-main)', letterSpacing: '-0.01em' }}>
-                Connecting to WellNexa Clinical Engine...
-              </div>
-              <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>
-                Validating session credentials and synchronizing biometrics
-              </div>
-            </div>
-          ) : (
-            renderActiveView()
-          )}
+          {renderActiveView()}
         </main>
       </div>
 
-      {/* Mobile Bottom Navigation Bar (Screens <= 768px) */}
+      {/* Mobile Bottom Navigation Bar */}
       <nav className="mobile-bottom-nav" style={{
         position: 'fixed',
         bottom: 0,
@@ -296,20 +342,16 @@ export default function App() {
           { id: 'dashboard', label: 'Home', icon: LayoutDashboard },
           { id: 'profile', label: 'Vitals', icon: HeartPulse },
           { id: 'medicines', label: 'Meds', icon: Pill },
+          { id: 'appointments', label: 'Visits', icon: CalendarDays },
           { id: 'reports', label: 'Labs', icon: FileSpreadsheet },
           { id: 'assistant', label: 'AI Chat', icon: BotMessageSquare },
         ].map((item) => {
           const Icon = item.icon;
-          const isActive =
-            activeTab === item.id ||
-            (item.id === 'profile' && activeTab === 'my_health' && (subTab.my_health === 'profile' || !subTab.my_health)) ||
-            (item.id === 'reports' && activeTab === 'my_health' && subTab.my_health === 'reports') ||
-            (item.id === 'medicines' && activeTab === 'meds_reminders' && (subTab.meds_reminders === 'medicines' || !subTab.meds_reminders)) ||
-            (item.id === 'assistant' && activeTab === 'assistant');
+          const isActive = activeTab === item.id;
           return (
             <button
               key={item.id}
-              onClick={() => handleNavigate(item.id)}
+              onClick={() => setActiveTab(item.id)}
               style={{
                 display: 'flex',
                 flexDirection: 'column',
@@ -321,7 +363,7 @@ export default function App() {
                 fontSize: '0.72rem',
                 fontWeight: isActive ? 700 : 500,
                 cursor: 'pointer',
-                padding: '4px 10px',
+                padding: '4px 8px',
               }}
             >
               <Icon size={18} color={isActive ? 'var(--primary)' : 'currentColor'} />

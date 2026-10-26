@@ -13,7 +13,14 @@ import {
   Smile,
   AlertTriangle,
   ArrowRight,
-  Plus
+  Plus,
+  HeartPulse,
+  CalendarDays,
+  UtensilsCrossed,
+  Flame,
+  BotMessageSquare,
+  ShieldCheck,
+  User
 } from 'lucide-react';
 import api from '../api';
 
@@ -30,20 +37,8 @@ export default function DashboardView({ onNavigate }) {
       const data = await api.getHomeDashboard();
       setDashboard(data);
     } catch (err) {
-      console.warn('fetchDashboard encountered error, attempting recovery:', err);
-      if (err.message && (err.message.includes('token') || err.message.includes('401') || err.message.includes('expired') || err.message.includes('Signature'))) {
-        try {
-          await api.login('patient@wellnexa.ai', 'Password123!');
-          const data = await api.getHomeDashboard();
-          setDashboard(data);
-          setError(null);
-          return;
-        } catch (retryErr) {
-          setError(retryErr.message || 'Authentication error');
-        }
-      } else {
-        setError(err.message || 'Failed to load home dashboard');
-      }
+      console.warn('fetchDashboard encountered error:', err);
+      setError(err.message || 'Failed to load home dashboard');
     } finally {
       setLoading(false);
     }
@@ -239,6 +234,73 @@ export default function DashboardView({ onNavigate }) {
           >
             <Plus size={12} /> +250 ml Water
           </button>
+        </div>
+      </div>
+
+      {/* Platform Feature Quick Launchpad (Instant 1-Click Access to Every Module) */}
+      <div style={{ marginBottom: '28px' }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '14px' }}>
+          <div>
+            <h2 style={{ fontSize: '1.25rem', fontWeight: 800, margin: 0, color: 'var(--text-main)' }}>
+              Healthcare Workspaces & Quick Jump
+            </h2>
+            <p style={{ margin: '2px 0 0', fontSize: '0.82rem', color: 'var(--text-muted)' }}>
+              One-click access to all integrated clinical and wellness modules without searching.
+            </p>
+          </div>
+        </div>
+
+        <div className="grid-4" style={{ gap: '14px' }}>
+          {[
+            { id: 'profile', label: 'Health Profile & Vitals', desc: 'BP, BMI, Glucose & Allergies', icon: HeartPulse, color: 'var(--primary)', badge: 'Verified' },
+            { id: 'reports', label: 'Medical Lab Reports', desc: 'OCR extraction & AI explanations', icon: FileSpreadsheet, color: '#0284c7', badge: '1 Verified' },
+            { id: 'medicines', label: 'Prescriptions & Meds', desc: 'Dose schedules & stock refill alert', icon: Pill, color: '#10b981', badge: '2 Active' },
+            { id: 'reminders', label: 'Smart Health Reminders', desc: 'Centralized health tasks & alerts', icon: Bell, color: '#f59e0b', badge: 'Due Today' },
+            { id: 'appointments', label: 'Clinical Appointments', desc: 'Hospital visits & Telehealth', icon: CalendarDays, color: '#ec4899', badge: '1 Booked' },
+            { id: 'nutrition', label: 'AI Nutrition & Diet', desc: 'Macro tracking & meal planner', icon: UtensilsCrossed, color: '#8b5cf6', badge: '1,850 kcal' },
+            { id: 'fitness', label: 'Fitness & Activity', desc: 'Steps, sleep & workout habits', icon: Flame, color: '#f97316', badge: '8,420 steps' },
+            { id: 'wellness', label: 'Mental Wellness', desc: 'Daily mood journal & Tele-MANAS', icon: Smile, color: '#06b6d4', badge: 'Score 4/5' },
+          ].map((item) => {
+            const Icon = item.icon;
+            return (
+              <div
+                key={item.id}
+                onClick={() => onNavigate(item.id)}
+                className="interactive-card glass-card"
+                style={{
+                  padding: '16px 18px',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  gap: '8px',
+                  cursor: 'pointer',
+                  borderTop: `3px solid ${item.color}`,
+                }}
+              >
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <div style={{
+                    width: '34px',
+                    height: '34px',
+                    borderRadius: '8px',
+                    background: 'var(--mint-surface)',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                  }}>
+                    <Icon size={18} color={item.color} />
+                  </div>
+                  <span className="badge badge-normal" style={{ fontSize: '0.65rem' }}>{item.badge}</span>
+                </div>
+                <div>
+                  <h4 style={{ margin: '0 0 2px', fontSize: '0.92rem', fontWeight: 700, color: 'var(--text-main)' }}>
+                    {item.label}
+                  </h4>
+                  <p style={{ margin: 0, fontSize: '0.75rem', color: 'var(--text-muted)' }}>
+                    {item.desc}
+                  </p>
+                </div>
+              </div>
+            );
+          })}
         </div>
       </div>
 
