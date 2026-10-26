@@ -1,0 +1,200 @@
+import sys
+try:
+    from pptx import Presentation
+    from pptx.util import Inches, Pt
+    from pptx.dml.color import RGBColor
+    from pptx.enum.text import PP_ALIGN
+    from pptx.enum.shapes import MSO_SHAPE
+except Exception as e:
+    print(e); sys.exit(1)
+
+NAVY = RGBColor(0x0F,0x2B,0x5B)
+TEAL = RGBColor(0x00,0x8B,0x8B)
+GREY = RGBColor(0x44,0x44,0x44)
+WHITE = RGBColor(0xFF,0xFF,0xFF)
+
+prs = Presentation()
+prs.slide_width = Inches(13.333)
+prs.slide_height = Inches(7.5)
+
+def title_slide(title, subtitle):
+    slide = prs.slides.add_slide(prs.slide_layouts[6])
+    bg = slide.shapes.add_shape(MSO_SHAPE.RECTANGLE, Inches(0), Inches(0), Inches(13.333), Inches(7.5))
+    bg.fill.solid(); bg.fill.fore_color.rgb = NAVY; bg.line.fill.background()
+    t = slide.shapes.add_textbox(Inches(0.8), Inches(2.2), Inches(11.7), Inches(1.5))
+    p = t.text_frame.paragraphs[0]; r = p.add_run(); r.text = title; r.font.size = Pt(44); r.font.bold = True; r.font.color.rgb = WHITE
+    p.alignment = PP_ALIGN.CENTER
+    t2 = slide.shapes.add_textbox(Inches(0.8), Inches(3.9), Inches(11.7), Inches(1.2))
+    p2 = t2.text_frame.paragraphs[0]; r2 = p2.add_run(); r2.text = subtitle; r2.font.size = Pt(20); r2.font.color.rgb = RGBColor(0xBB,0xDD,0xEE)
+    p2.alignment = PP_ALIGN.CENTER
+    return slide
+
+def heading_slide(title):
+    slide = prs.slides.add_slide(prs.slide_layouts[6])
+    bar = slide.shapes.add_shape(MSO_SHAPE.RECTANGLE, Inches(0), Inches(0), Inches(13.333), Inches(1.1))
+    bar.fill.solid(); bar.fill.fore_color.rgb = TEAL; bar.line.fill.background()
+    t = slide.shapes.add_textbox(Inches(0.6), Inches(0.15), Inches(12.1), Inches(0.8))
+    p = t.text_frame.paragraphs[0]; r = p.add_run(); r.text = title; r.font.size = Pt(30); r.font.bold = True; r.font.color.rgb = WHITE
+    return slide
+
+def bullet_slide(title, bullets, font_size=20):
+    slide = heading_slide(title)
+    tb = slide.shapes.add_textbox(Inches(0.8), Inches(1.4), Inches(11.7), Inches(5.8))
+    tf = tb.text_frame; tf.word_wrap = True
+    for i, b in enumerate(bullets):
+        p = tf.paragraphs[0] if i == 0 else tf.add_paragraph()
+        p.text = b
+        p.font.size = Pt(font_size)
+        p.font.color.rgb = GREY
+        p.space_after = Pt(8)
+        p.level = 0
+    return slide
+
+def table_slide(title, headers, rows, col_widths=None):
+    slide = heading_slide(title)
+    n = len(headers)
+    m = len(rows)
+    table = slide.shapes.add_table(m+1, n, Inches(0.8), Inches(1.5), Inches(11.7), Inches(0.45*(m+1))).table
+    for j, h in enumerate(headers):
+        cell = table.cell(0, j)
+        cell.text = h
+        for p in cell.text_frame.paragraphs:
+            for r in p.runs:
+                r.font.bold = True; r.font.size = Pt(15); r.font.color.rgb = WHITE
+        cell.fill.solid(); cell.fill.fore_color.rgb = TEAL
+    for i, row in enumerate(rows):
+        for j, val in enumerate(row):
+            cell = table.cell(i+1, j)
+            cell.text = str(val)
+            for p in cell.text_frame.paragraphs:
+                for r in p.runs:
+                    r.font.size = Pt(13); r.font.color.rgb = GREY
+    if col_widths:
+        for j, w in enumerate(col_widths):
+            for i in range(m+1):
+                table.cell(i, j).width = Inches(w)
+    return slide
+
+# 1 Title
+title_slide("WellNexa AI", "An AI-Powered Integrated Personal Healthcare & Wellness Management Platform\nCapstone Project Presentation — MCA Semester I, GLS University (2026-27)")
+
+# 2 Introduction
+bullet_slide("Introduction", [
+    "WellNexa AI is an all-in-one personal healthcare and wellness management platform.",
+    "It combines medical records, medical-report understanding, medicines, nutrition, fitness, mental wellness, preventive tracking, appointments, reminders and AI-powered health education.",
+    "A single personal health profile connects authorized information across all modules.",
+    "Positioned as preventive health management and education — NOT a diagnosis or treatment tool.",
+    "Every AI output is labelled AI-generated and advises consulting a qualified professional.",
+])
+
+# 3 Project Definition
+bullet_slide("Project Definition", [
+    "Problem: Personal health information is fragmented across apps, paper reports and clinics; users struggle to understand and manage everyday health needs.",
+    "Solution: A centralized personal health ecosystem with one authorized health profile.",
+    "Users can upload a lab report, extract text via OCR, get an AI-assisted plain-language explanation, store it in a health timeline, compare with previous results, and selectively share with a healthcare professional.",
+    "Provides medicine schedules, refill alerts, nutrition & fitness tracking, mental wellness, reminders, appointments and consent-based doctor access.",
+    "Tech: React/Next.js frontend, Python FastAPI backend, PostgreSQL + pgvector, JWT RBAC, Tesseract OCR, scikit-learn, LLM API.",
+])
+
+# 4 Project Profile
+table_slide("Project Profile", ["Field", "Details"], [
+    ["Project Name", "WellNexa AI"],
+    ["Full Title", "An AI-Powered Integrated Personal Healthcare & Wellness Management Platform"],
+    ["Course", "MCA Semester I — Capstone Project I"],
+    ["Institute", "GLS University"],
+    ["Academic Year", "2026-27"],
+    ["Team Size", "5 Members"],
+    ["Domain", "Healthcare / Wellness / Artificial Intelligence"],
+    ["Platform", "Responsive Web Application (Desktop + Mobile browsers)"],
+    ["Status", "In Development / Demo Ready"],
+])
+
+# 5 Tools and Technology
+table_slide("Tools and Technology", ["Layer", "Technology"], [
+    ["Frontend", "React with Next.js"],
+    ["Backend", "Python FastAPI"],
+    ["Database", "PostgreSQL with pgvector (RAG vector search)"],
+    ["AI / ML", "Python, scikit-learn, LLM API (key via environment variable)"],
+    ["OCR", "Tesseract (pytesseract wrapper)"],
+    ["Authentication", "JWT with Role-Based Access Control (patient, doctor, admin)"],
+    ["Charts", "Recharts"],
+    ["Testing", "Postman collection + unit & integration tests"],
+    ["Version Control", "Git"],
+    ["Deployment", "Docker / Docker Compose"],
+])
+
+# 6 Modules
+bullet_slide("Modules", [
+    "1. Personal Health Profile — age, height, weight, BMI, BP, glucose, allergies, lifestyle, goals.",
+    "2. AI Medical Report Analyzer — OCR, reference-range highlighting, timeline & trends.",
+    "3. Prescription & Medicine Manager — prescription OCR, schedules, refill alerts, history.",
+    "4. AI Nutrition Planner — food logging, calories/nutrients, meal suggestions, grocery list.",
+    "5. Fitness & Lifestyle Tracker — steps, exercise, sleep, water, weight, goals.",
+    "6. Mental Wellness — mood journal, stress tracking, prompts, relaxation cards.",
+    "7. Smart Reminders — medicines, appointments, checkups, lab tests, vaccinations, refills.",
+    "8. Doctor Portal — consent-based record sharing, patient summaries, appointments.",
+    "9. AI Health Assistant — general health education, document explanation, RAG/LLM, citations.",
+    "10. Health Dashboard — single page combining all modules.",
+])
+
+# 7 Functionalities
+bullet_slide("Functionalities", [
+    "Register / login / logout with hashed passwords and JWT access tokens; role-based protection.",
+    "CRUD personal health profile with auto-calculated BMI.",
+    "Upload PDF/image reports, store file, OCR extract text, highlight out-of-range values, save to health timeline.",
+    "AI explains reports in plain language (labelled AI-generated); refuses diagnosis/prescription; emergency referral message.",
+    "Ingest trusted health-education docs into pgvector; assistant answers with retrieved passages and citations.",
+    "Prescription upload + OCR + user confirmation of medicines; schedules, refill alerts, medication history.",
+    "Create reminders for medicines, appointments, checkups, lab tests, vaccinations, refills; in-dashboard notifications.",
+    "Food logging with daily totals; meal suggestions and grocery list; scikit-learn / rule-based recommendations.",
+    "Log steps, exercise, sleep, water, weight; set goals and show progress.",
+    "Mood journal, stress tracking, reflective prompts, relaxation exercise cards.",
+    "Recharts line & bar charts for every tracked metric over time using validated formulas.",
+    "Patients grant/revoke access to specific records; doctors see only shared records.",
+    "Encrypt sensitive fields/files at rest; audit log for every health-data access and sharing change.",
+])
+
+# 8 Users
+bullet_slide("Users of the System", [
+    "Patient — manages own profile, reports, medicines, nutrition, fitness, wellness, reminders, appointments; grants/revokes doctor access.",
+    "Doctor — views only consent-shared records, patient summaries and appointments; adds professional notes.",
+    "Admin — manages users/roles, views audit logs, monitors system; no routine access to patient data (data minimisation).",
+    "Future (scope): caregiver/family access with explicit consent.",
+])
+
+# 9 Architecture Diagram
+slide = heading_slide("Architecture Diagram")
+# draw layers
+layers = [
+    ("User Application (Browser / Mobile)", TEAL),
+    ("Frontend — Next.js (React)", RGBColor(0x1F,0x6F,0x8B)),
+    ("Backend API & Authentication — FastAPI (JWT, RBAC)", RGBColor(0x2E,0x5C,0x8A)),
+    ("Health Records • Reports • Medicines • Nutrition • Fitness • Wellness • Appointments • Notifications", RGBColor(0x4A,0x6F,0xA5)),
+    ("AI Engine — OCR • NLP • RAG (pgvector) • LLM • scikit-learn • Analytics", RGBColor(0x6B,0x5B,0x95)),
+    ("Secure Database (PostgreSQL + pgvector) + Document Storage", RGBColor(0x8A,0x4A,0x6F)),
+    ("Doctor / Healthcare Professional Portal", RGBColor(0x0F,0x2B,0x5B)),
+]
+y = 1.4
+for label, color in layers:
+    sh = slide.shapes.add_shape(MSO_SHAPE.ROUNDED_RECTANGLE, Inches(2.2), Inches(y), Inches(8.9), Inches(0.7))
+    sh.fill.solid(); sh.fill.fore_color.rgb = color; sh.line.fill.background()
+    t = slide.shapes.add_textbox(Inches(2.2), Inches(y+0.12), Inches(8.9), Inches(0.5))
+    p = t.text_frame.paragraphs[0]; r = p.add_run(); r.text = label; r.font.size = Pt(15); r.font.bold = True; r.font.color.rgb = WHITE
+    p.alignment = PP_ALIGN.CENTER
+    if y > 1.4:
+        # arrow
+        arr = slide.shapes.add_shape(MSO_SHAPE.DOWN_ARROW, Inches(6.3), Inches(y-0.32), Inches(0.7), Inches(0.32))
+        arr.fill.solid(); arr.fill.fore_color.rgb = GREY; arr.line.fill.background()
+    y += 0.95
+
+# 10 Conclusion
+bullet_slide("Conclusion", [
+    "WellNexa AI integrates medical reports, medicines, nutrition, fitness, mental wellness, reminders, appointments and AI assistance through one personal health profile.",
+    "Built with React/Next.js, FastAPI, PostgreSQL+pgvector, JWT RBAC, Tesseract OCR, scikit-learn and an LLM API.",
+    "Designed as preventive health management and education — not a substitute for a qualified healthcare professional.",
+    "Thank you! Questions?",
+])
+
+out = r"C:\Users\AJAY CHAUDHARI\OneDrive\Downloads\Wellnexa-main\WellNexa_AI_Presentation.pptx"
+prs.save(out)
+print("SAVED", out)
