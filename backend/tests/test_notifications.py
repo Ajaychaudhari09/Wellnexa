@@ -49,16 +49,31 @@ async def test_notifications_dispatch_read_and_unread_counts(client: AsyncClient
     read_resp = await client.post(f"/api/v1/notifications/{n1_id}/read", headers=headers)
     assert read_resp.status_code == 200
     assert read_resp.json()["data"]["is_read"] is True
+    patch_read_resp = await client.patch(f"/api/v1/notifications/{n2_resp.json()['data']['id']}/read", headers=headers)
+    assert patch_read_resp.status_code == 200
+    assert patch_read_resp.json()["data"]["is_read"] is True
+
+    # A different user cannot mark another user's notification as read.
+    await client.post("/api/v1/auth/register", json={
+        "email": "other_notif_patient@example.com", "password": "Password123!",
+        "first_name": "Other", "last_name": "Patient"
+    })
+    other_login = await client.post("/api/v1/auth/login", json={
+        "email": "other_notif_patient@example.com", "password": "Password123!"
+    })
+    other_headers = {"Authorization": f"Bearer {other_login.json()['data']['access_token']}"}
+    idor_read = await client.patch(f"/api/v1/notifications/{n1_id}/read", headers=other_headers)
+    assert idor_read.status_code == 404
 
     # Check unread count is now 1
     c1_resp = await client.get("/api/v1/notifications/unread-count", headers=headers)
     assert c1_resp.status_code == 200
-    assert c1_resp.json()["data"]["unread_count"] == 1
+    assert c1_resp.json()["data"]["unread_count"] == 0
 
     # 6. Mark All as Read
     all_read_resp = await client.post("/api/v1/notifications/mark-all-read", headers=headers)
     assert all_read_resp.status_code == 200
-    assert all_read_resp.json()["data"]["updated_count"] >= 1
+    assert all_read_resp.json()["data"]["updated_count"] == 0
 
     # Check unread count is now 0
     final_count = await client.get("/api/v1/notifications/unread-count", headers=headers)

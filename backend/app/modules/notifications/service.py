@@ -4,7 +4,7 @@ from typing import List, Optional, Tuple, Dict, Any
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select, and_, desc, func, update
 
-from app.core.exceptions import NotFoundException, WellNexaException
+from app.core.exceptions import NotFoundException
 from app.models.notification import (
     Notification,
     NotificationTypeEnum,
@@ -26,15 +26,6 @@ class NotificationService:
         pref_res = await self.db.execute(pref_q)
         pref = pref_res.scalar_one_or_none()
 
-        if pref:
-            # Check specific alert toggles
-            if req.notification_type == NotificationTypeEnum.MEDICINE_DUE and not pref.medicine_alerts:
-                pass # Can still store in in-app
-            elif req.notification_type == NotificationTypeEnum.REFILL_ALERT and not pref.refill_alerts:
-                pass
-            elif req.notification_type == NotificationTypeEnum.APPOINTMENT_UPCOMING and not pref.appointment_alerts:
-                pass
-
         notification = Notification(
             user_id=user_id,
             notification_type=req.notification_type,
@@ -48,9 +39,6 @@ class NotificationService:
         )
         self.db.add(notification)
         await self.db.flush()
-
-        # Multi-Channel Dispatch Abstraction (Push Notification / Email simulation)
-        print(f"[Notification Dispatcher] Sent {req.priority.value} alert '{req.title}' to user {user_id} (Channels: In-App, Push={pref.enable_push if pref else True}, Email={pref.enable_email if pref else False})")
 
         return notification
 

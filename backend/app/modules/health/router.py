@@ -15,8 +15,9 @@ async def check_health(db: AsyncSession = Depends(get_db)) -> ApiResponse[Health
     try:
         result = await db.execute(text("SELECT 1"))
         result.scalar()
-    except Exception as exc:
-        db_status = f"unhealthy: {str(exc)}"
+    except Exception:
+        # Never include DB URLs, parameters or driver details in a public health response.
+        db_status = "unhealthy"
 
     overall_status = "healthy" if db_status == "healthy" else "degraded"
 

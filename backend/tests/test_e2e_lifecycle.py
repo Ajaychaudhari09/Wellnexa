@@ -22,9 +22,11 @@ async def test_full_patient_e2e_lifecycle_journey(client: AsyncClient):
     token = login_resp.json()["data"]["access_token"]
     patient_id = login_resp.json()["data"]["user"]["id"]
     headers = {"Authorization": f"Bearer {token}"}
+    consent_resp = await client.put("/api/v1/privacy/consent", json={"allow_doctor_sharing": True}, headers=headers)
+    assert consent_resp.status_code == 200
 
     # 2. Unified Health Profile & Baseline Vitals
-    await client.post("/api/v1/profile", json={
+    await client.put("/api/v1/profile/me", json={
         "first_name": "Natasha",
         "last_name": "Romanoff",
         "gender": "FEMALE",
@@ -114,16 +116,33 @@ async def test_full_patient_e2e_lifecycle_journey(client: AsyncClient):
     assert msg_resp.status_code == 200
     assert "Vitamin D" in msg_resp.json()["data"]["content"]
 
+    # Provision a named doctor account for the time-bound access test.
+    from sqlalchemy import select
+    from app.models.user import User, Role, RoleEnum
+    from app.core.security import get_password_hash
+    from tests.conftest import TestingSessionLocal
+    async with TestingSessionLocal() as db:
+        doctor_role = (await db.execute(select(Role).where(Role.name == RoleEnum.DOCTOR))).scalar_one_or_none()
+        if doctor_role is None:
+            doctor_role = Role(name=RoleEnum.DOCTOR, description="Approved test doctor")
+            db.add(doctor_role)
+            await db.flush()
+        db.add(User(email="lifecycle-doctor@example.com", hashed_password=get_password_hash("Password123!"), is_active=True, is_verified=True, roles=[doctor_role]))
+        await db.commit()
+    doctor_login = await client.post("/api/v1/auth/login", json={"email": "lifecycle-doctor@example.com", "password": "Password123!"})
+    doctor_headers = {"Authorization": f"Bearer {doctor_login.json()['data']['access_token']}"}
+
     # 9. Doctor Portal Sharing & Consultation Note
     grant_resp = await client.post("/api/v1/sharing/grants", json={
         "access_scope": "FULL_ACCESS",
         "duration_hours": 24,
+        "doctor_email": "lifecycle-doctor@example.com",
         "notes": "Consultation with Sports Specialist"
     }, headers=headers)
     assert grant_resp.status_code == 201
     doc_token = grant_resp.json()["data"]["access_token"]
 
-    doc_view = await client.get(f"/api/v1/doctor/patient/{patient_id}/summary?token={doc_token}")
+    doc_view = await client.get(f"/api/v1/doctor/patient/{patient_id}/summary?token={doc_token}", headers=doctor_headers)
     assert doc_view.status_code == 200
     assert any("Latex" in a for a in doc_view.json()["data"]["allergies"])
 
@@ -134,7 +153,7 @@ async def test_full_patient_e2e_lifecycle_journey(client: AsyncClient):
             "chief_complaint": "Joint flexibility routine checkup",
             "clinical_observations": "Good vitals, clear chest, normal blood pressure.",
             "recommended_actions": "Maintain current fitness regimen."
-        }
+        }, headers=doctor_headers
     )
     assert consult_resp.status_code == 201
 

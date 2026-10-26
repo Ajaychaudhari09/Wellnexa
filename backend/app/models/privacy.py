@@ -14,7 +14,7 @@ class UserConsent(Base, UUIDMixin, TimestampMixin):
     user_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), ForeignKey("users.id", ondelete="CASCADE"), unique=True, nullable=False, index=True)
     allow_ai_analysis: Mapped[bool] = mapped_column(Boolean, default=True, nullable=False)
     allow_anonymized_insights: Mapped[bool] = mapped_column(Boolean, default=True, nullable=False)
-    allow_doctor_sharing: Mapped[bool] = mapped_column(Boolean, default=True, nullable=False)
+    allow_doctor_sharing: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
     data_retention_days: Mapped[int] = mapped_column(Integer, default=365, nullable=False) # e.g. 365 days / 0 for forever
 
     user: Mapped["User"] = relationship("User", back_populates="consent")

@@ -1,15 +1,15 @@
 import uuid
 from datetime import datetime, timezone
-from typing import List, Optional, Tuple, Dict, Any
+from typing import List, Optional, Dict, Any
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select, and_, desc, func
 
-from app.core.exceptions import NotFoundException, WellNexaException
+from app.core.exceptions import NotFoundException
 from app.models.chat import ChatSession, ChatMessage, ChatRoleEnum
+from app.core.encryption import encrypt, decrypt
 from app.models.profile import Profile
 from app.models.health import Allergy, MedicalCondition, HealthMetric
 from app.models.medicine import Medication
-from app.models.timeline import TimelineCategoryEnum, TimelineEventTypeEnum
 from ai.assistant.context_assembler import PatientContextAssembler
 from ai.assistant.engine import AIAssistantEngine
 from app.modules.assistant.schemas import (
@@ -107,7 +107,7 @@ class AssistantService:
             session_id=session.id,
             user_id=user_id,
             role=ChatRoleEnum.USER,
-            content=message_text.strip(),
+            content=encrypt(message_text.strip()),
             is_safety_triggered=False,
         )
         self.db.add(user_msg)
@@ -127,7 +127,7 @@ class AssistantService:
             session_id=session.id,
             user_id=user_id,
             role=ChatRoleEnum.ASSISTANT,
-            content=ai_result["content"],
+            content=encrypt(ai_result["content"]),
             cited_sources=ai_result["cited_sources"],
             disclaimer=ai_result["disclaimer"],
             is_safety_triggered=ai_result["is_safety_triggered"],
@@ -143,7 +143,7 @@ class AssistantService:
             id=assistant_msg.id,
             session_id=assistant_msg.session_id,
             role=assistant_msg.role.value,
-            content=assistant_msg.content,
+            content=ai_result["content"],
             cited_sources=cited_items,
             disclaimer=assistant_msg.disclaimer,
             is_safety_triggered=assistant_msg.is_safety_triggered,
@@ -161,7 +161,7 @@ class AssistantService:
                 id=m.id,
                 session_id=m.session_id,
                 role=m.role.value,
-                content=m.content,
+                content=decrypt(m.content),
                 cited_sources=[CitedSourceItem(**s) for s in (m.cited_sources or [])],
                 disclaimer=m.disclaimer,
                 is_safety_triggered=m.is_safety_triggered,

@@ -21,7 +21,7 @@ class RateLimiter:
         if len(timestamps) >= self.requests_per_minute:
             raise HTTPException(
                 status_code=status.HTTP_429_TOO_MANY_REQUESTS,
-                detail=f"Rate limit exceeded. Maximum {self.requests_per_minute} requests per minute allowed.",
+                detail="Rate limit exceeded. Please wait before trying again.",
             )
 
         timestamps.append(now)

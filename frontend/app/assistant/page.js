@@ -17,7 +17,7 @@ export default function Assistant() {
     setMsgs(m => [...m, { role: 'user', text: question }]);
     try {
       const sess = await api.request('/assistant/sessions', { method: 'POST', body: JSON.stringify({}) });
-      const data = await api.request(`/assistant/sessions/${sess.id}/messages`, { method: 'POST', body: JSON.stringify({ content: question }) });
+      const data = await api.request(`/assistant/sessions/${sess.id}/messages`, { method: 'POST', body: JSON.stringify({ message: question }) });
       const answer = data?.content || data?.response || JSON.stringify(data);
       setMsgs(m => [...m, { role: 'ai', text: answer + '\n\nAI-generated, not medical advice.' }]);
     } catch (e) { setMsgs(m => [...m, { role: 'ai', text: e.message }]); }

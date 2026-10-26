@@ -14,6 +14,7 @@ from app.modules.auth.schemas import (
     MessageResponse,
 )
 from app.modules.auth.service import AuthService
+from app.core.encryption import decrypt
 
 router = APIRouter(prefix="/auth", tags=["Authentication"])
 
@@ -41,8 +42,8 @@ async def register(
         is_active=user.is_active,
         is_verified=user.is_verified,
         roles=role_names,
-        first_name=user.profile.first_name if user.profile else None,
-        last_name=user.profile.last_name if user.profile else None,
+        first_name=decrypt(user.profile.first_name) if user.profile else None,
+        last_name=decrypt(user.profile.last_name) if user.profile else None,
     )
 
     return ApiResponse[UserResponse](
@@ -117,8 +118,8 @@ async def get_me(
         is_active=current_user.is_active,
         is_verified=current_user.is_verified,
         roles=role_names,
-        first_name=current_user.profile.first_name if current_user.profile else None,
-        last_name=current_user.profile.last_name if current_user.profile else None,
+        first_name=decrypt(current_user.profile.first_name) if current_user.profile else None,
+        last_name=decrypt(current_user.profile.last_name) if current_user.profile else None,
     )
 
     return ApiResponse[UserResponse](

@@ -4,6 +4,7 @@ from datetime import datetime, date, timedelta, timezone
 from typing import List, Optional, Tuple, Dict, Any
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select, and_, desc, func
+from app.core.encryption import decrypt
 
 from app.core.exceptions import NotFoundException, PermissionDeniedException, WellNexaException
 from app.models.user import User
@@ -37,6 +38,13 @@ class DoctorService:
 
     # ----------------- Access Grants (Patient controls) -----------------
     async def create_access_grant(self, patient_id: uuid.UUID, req: CreateAccessGrantRequest) -> AccessGrantResponse:
+        from app.models.privacy import UserConsent
+        consent_result = await self.db.execute(select(UserConsent).where(UserConsent.user_id == patient_id))
+        consent = consent_result.scalar_one_or_none()
+        if consent is None or not consent.allow_doctor_sharing:
+            raise PermissionDeniedException("Doctor sharing is disabled in your privacy settings")
+        from app.modules.privacy.service import PrivacyService
+        await PrivacyService(self.db).log_access_event(patient_id, patient_id, "PATIENT", "SHARE_GRANTED", "patient_access_grants")
         now = datetime.now(timezone.utc)
         expires = now + timedelta(hours=req.duration_hours)
         token = secrets.token_urlsafe(32)
@@ -48,7 +56,13 @@ class DoctorService:
             doc_res = await self.db.execute(doc_q)
             doc_user = doc_res.scalar_one_or_none()
             if doc_user:
+                if not doc_user.has_role("DOCTOR") or not doc_user.is_active or not doc_user.is_verified:
+                    raise PermissionDeniedException("The selected doctor account is not approved")
                 doc_id = doc_user.id
+            else:
+                raise NotFoundException("Doctor account", req.doctor_email)
+        else:
+            raise WellNexaException(status_code=400, detail="Name the doctor account before granting record access")
 
         grant = PatientAccessGrant(
             patient_id=patient_id,
@@ -126,6 +140,8 @@ class DoctorService:
             raise NotFoundException("PatientAccessGrant", grant_id)
 
         grant.status = GrantStatusEnum.REVOKED
+        from app.modules.privacy.service import PrivacyService
+        await PrivacyService(self.db).log_access_event(patient_id, patient_id, "PATIENT", "SHARE_REVOKED", "patient_access_grants")
         await self.db.flush()
 
     # ----------------- Doctor Access Verification -----------------
@@ -150,15 +166,22 @@ class DoctorService:
 
         return grant
 
+    async def validate_doctor_grant(self, access_token: str, patient_id: uuid.UUID, doctor_id: uuid.UUID) -> PatientAccessGrant:
+        grant = await self.validate_grant(access_token, patient_id)
+        if grant.doctor_id != doctor_id:
+            raise PermissionDeniedException("This access grant is not assigned to your doctor account")
+        return grant
+
     # ----------------- Patient Clinical Summary (Doctor view) -----------------
     async def get_patient_clinical_summary(self, access_token: str, patient_id: uuid.UUID) -> PatientClinicalSummaryResponse:
         grant = await self.validate_grant(access_token, patient_id)
+        await self._record_doctor_view(patient_id, grant.doctor_id, "DOCTOR_VIEW", "patient_summary")
         scope = grant.access_scope
 
         # Profile
         prof_res = await self.db.execute(select(Profile).where(Profile.user_id == patient_id))
         prof = prof_res.scalar_one_or_none()
-        full_name = f"{prof.first_name} {prof.last_name}" if prof else "WellNexa Patient"
+        full_name = f"{decrypt(prof.first_name)} {decrypt(prof.last_name)}" if prof else "WellNexa Patient"
         gender = prof.gender.value if prof and prof.gender else None
         blood = prof.blood_group.value if prof and prof.blood_group else None
 
@@ -251,6 +274,10 @@ class DoctorService:
             grant_expires_at=grant.expires_at,
         )
 
+    async def _record_doctor_view(self, patient_id: uuid.UUID, doctor_id: Optional[uuid.UUID], action: str, resource: str) -> None:
+        from app.modules.privacy.service import PrivacyService
+        await PrivacyService(self.db).log_access_event(patient_id, doctor_id, "DOCTOR", action, resource)
+
     # ----------------- Doctor Consultation Notes -----------------
     async def create_consultation_note(
         self, patient_id: uuid.UUID, req: DoctorConsultationCreateRequest, doctor_id: Optional[uuid.UUID] = None
@@ -283,7 +310,8 @@ class DoctorService:
 
         return consultation
 
-    async def get_patient_consultations(self, patient_id: uuid.UUID) -> List[DoctorConsultation]:
+    async def get_patient_consultations(self, patient_id: uuid.UUID, doctor_id: uuid.UUID) -> List[DoctorConsultation]:
         query = select(DoctorConsultation).where(DoctorConsultation.patient_id == patient_id).order_by(desc(DoctorConsultation.consultation_date))
         result = await self.db.execute(query)
+        await self._record_doctor_view(patient_id, doctor_id, "DOCTOR_VIEW", "consultations")
         return list(result.scalars().all())

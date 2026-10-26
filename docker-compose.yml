@@ -1,5 +1,5 @@
 services:
-  postgres:
+  db:
     image: pgvector/pgvector:pg16
     container_name: wellnexa_postgres
     restart: unless-stopped
@@ -11,7 +11,7 @@ services:
       - "${POSTGRES_PORT:-5432}:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
-      - ./infra/docker/init-db.sql:/docker-entrypoint-initdb.d/init-db.sql
+      - ./infra/docker/init-db.sql:/docker-entrypoint-initdb.d/init-db.sql:ro
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-wellnexa} -d ${POSTGRES_DB:-wellnexa_db}"]
       interval: 5s
@@ -31,23 +31,32 @@ services:
       - ./storage:/app/storage
     ports:
       - "8000:8000"
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/health')"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
     environment:
-      - ENVIRONMENT=development
-      - DEBUG=True
-      - DATABASE_URL=postgresql+asyncpg://${POSTGRES_USER:-wellnexa}:${POSTGRES_PASSWORD:-wellnexa_secure_password}@postgres:5432/${POSTGRES_DB:-wellnexa_db}
-      - SYNC_DATABASE_URL=postgresql://${POSTGRES_USER:-wellnexa}:${POSTGRES_PASSWORD:-wellnexa_secure_password}@postgres:5432/${POSTGRES_DB:-wellnexa_db}
-      - SECRET_KEY=${SECRET_KEY:-change_this_to_a_very_secure_random_secret_key_in_production_min_32_chars}
+      - DATABASE_URL=postgresql+asyncpg://${POSTGRES_USER:-wellnexa}:${POSTGRES_PASSWORD:-wellnexa_secure_password}@db:5432/${POSTGRES_DB:-wellnexa_db}
+      - SYNC_DATABASE_URL=postgresql://${POSTGRES_USER:-wellnexa}:${POSTGRES_PASSWORD:-wellnexa_secure_password}@db:5432/${POSTGRES_DB:-wellnexa_db}
+      - SECRET_KEY=${SECRET_KEY:?Set SECRET_KEY in your .env file}
       - UPLOAD_DIR=/app/storage/uploads
-      - LLM_PROVIDER=${LLM_PROVIDER:-mock}
+      - LLM_PROVIDER=${LLM_PROVIDER:-openai}
       - OPENAI_API_KEY=${OPENAI_API_KEY:-}
+      - LLM_MODEL=${LLM_MODEL:-gpt-4o-mini}
+      - EMBEDDING_MODEL=${EMBEDDING_MODEL:-text-embedding-3-small}
       - ENCRYPTION_KEY=${ENCRYPTION_KEY:-}
-      - SMTP_HOST=${SMTP_HOST:-localhost}
-      - SMTP_PORT=${SMTP_PORT:-587}
-      - SMTP_USER=${SMTP_USER:-}
-      - SMTP_PASSWORD=${SMTP_PASSWORD:-}
-      - SMTP_FROM=${SMTP_FROM:-no-reply@wellnexa.ai}
+      - SMTP_HOST=${EMAIL_HOST:-${SMTP_HOST:-localhost}}
+      - SMTP_PORT=${EMAIL_PORT:-${SMTP_PORT:-587}}
+      - SMTP_USER=${EMAIL_USER:-${SMTP_USER:-}}
+      - SMTP_PASSWORD=${EMAIL_PASS:-${SMTP_PASSWORD:-}}
+      - SMTP_FROM=${EMAIL_FROM_ADDRESS:-${SMTP_FROM:-no-reply@wellnexa.ai}}
+      - SMTP_USE_TLS=${SMTP_USE_TLS:-true}
+      - EMAIL_SECURE=${EMAIL_SECURE:-false}
+      - EMAIL_FROM_NAME=${EMAIL_FROM_NAME:-WellNexa}
+      - SUPPORT_EMAIL=${SUPPORT_EMAIL:-support@wellnexa.ai}
     depends_on:
-      postgres:
+      db:
         condition: service_healthy
 
   worker:
@@ -61,33 +70,39 @@ services:
       - ./backend:/app
       - ./storage:/app/storage
     environment:
-      - ENVIRONMENT=development
-      - DATABASE_URL=postgresql+asyncpg://${POSTGRES_USER:-wellnexa}:${POSTGRES_PASSWORD:-wellnexa_secure_password}@postgres:5432/${POSTGRES_DB:-wellnexa_db}
-      - SYNC_DATABASE_URL=postgresql://${POSTGRES_USER:-wellnexa}:${POSTGRES_PASSWORD:-wellnexa_secure_password}@postgres:5432/${POSTGRES_DB:-wellnexa_db}
-      - LLM_PROVIDER=${LLM_PROVIDER:-mock}
+      - DATABASE_URL=postgresql+asyncpg://${POSTGRES_USER:-wellnexa}:${POSTGRES_PASSWORD:-wellnexa_secure_password}@db:5432/${POSTGRES_DB:-wellnexa_db}
+      - SYNC_DATABASE_URL=postgresql://${POSTGRES_USER:-wellnexa}:${POSTGRES_PASSWORD:-wellnexa_secure_password}@db:5432/${POSTGRES_DB:-wellnexa_db}
+      - LLM_PROVIDER=${LLM_PROVIDER:-openai}
       - OPENAI_API_KEY=${OPENAI_API_KEY:-}
+      - LLM_MODEL=${LLM_MODEL:-gpt-4o-mini}
+      - EMBEDDING_MODEL=${EMBEDDING_MODEL:-text-embedding-3-small}
       - ENCRYPTION_KEY=${ENCRYPTION_KEY:-}
-      - SMTP_HOST=${SMTP_HOST:-localhost}
-      - SMTP_PORT=${SMTP_PORT:-587}
-      - SMTP_USER=${SMTP_USER:-}
-      - SMTP_PASSWORD=${SMTP_PASSWORD:-}
-      - SMTP_FROM=${SMTP_FROM:-no-reply@wellnexa.ai}
+      - SMTP_HOST=${EMAIL_HOST:-${SMTP_HOST:-localhost}}
+      - SMTP_PORT=${EMAIL_PORT:-${SMTP_PORT:-587}}
+      - SMTP_USER=${EMAIL_USER:-${SMTP_USER:-}}
+      - SMTP_PASSWORD=${EMAIL_PASS:-${SMTP_PASSWORD:-}}
+      - SMTP_FROM=${EMAIL_FROM_ADDRESS:-${SMTP_FROM:-no-reply@wellnexa.ai}}
+      - SMTP_USE_TLS=${SMTP_USE_TLS:-true}
+      - EMAIL_SECURE=${EMAIL_SECURE:-false}
+      - EMAIL_FROM_NAME=${EMAIL_FROM_NAME:-WellNexa}
+      - SUPPORT_EMAIL=${SUPPORT_EMAIL:-support@wellnexa.ai}
     depends_on:
-      postgres:
+      db:
         condition: service_healthy
 
   web:
     build:
       context: ./frontend
       dockerfile: Dockerfile
+      args:
+        API_ORIGIN: http://api:8000
     container_name: wellnexa_web
     restart: unless-stopped
     ports:
       - "3000:3000"
-    environment:
-      - NEXT_PUBLIC_API_BASE=http://api:8000
     depends_on:
-      - api
+      api:
+        condition: service_healthy
 
 volumes:
   postgres_data:

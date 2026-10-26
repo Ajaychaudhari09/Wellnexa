@@ -7,6 +7,7 @@ from app.schemas.common import ApiResponse
 from app.models.user import User
 from app.modules.profile.schemas import ProfileCreateUpdateRequest, ProfileResponse
 from app.modules.profile.service import ProfileService
+from app.core.encryption import decrypt
 
 router = APIRouter(prefix="/profile", tags=["Health Profile"])
 
@@ -22,14 +23,14 @@ async def get_my_profile(
     payload = ProfileResponse(
         id=profile.id,
         user_id=profile.user_id,
-        first_name=profile.first_name,
-        last_name=profile.last_name,
-        phone_number=profile.phone_number,
+        first_name=decrypt(profile.first_name),
+        last_name=decrypt(profile.last_name),
+        phone_number=decrypt(profile.phone_number) if profile.phone_number else None,
         date_of_birth=profile.date_of_birth,
         gender=profile.gender.value if hasattr(profile.gender, "value") else str(profile.gender),
         blood_group=profile.blood_group.value if hasattr(profile.blood_group, "value") else str(profile.blood_group),
-        emergency_contact_name=profile.emergency_contact_name,
-        emergency_contact_phone=profile.emergency_contact_phone,
+        emergency_contact_name=decrypt(profile.emergency_contact_name) if profile.emergency_contact_name else None,
+        emergency_contact_phone=decrypt(profile.emergency_contact_phone) if profile.emergency_contact_phone else None,
     )
 
     return ApiResponse[ProfileResponse](
@@ -51,14 +52,14 @@ async def update_my_profile(
     payload = ProfileResponse(
         id=profile.id,
         user_id=profile.user_id,
-        first_name=profile.first_name,
-        last_name=profile.last_name,
-        phone_number=profile.phone_number,
+        first_name=decrypt(profile.first_name),
+        last_name=decrypt(profile.last_name),
+        phone_number=decrypt(profile.phone_number) if profile.phone_number else None,
         date_of_birth=profile.date_of_birth,
         gender=profile.gender.value if hasattr(profile.gender, "value") else str(profile.gender),
         blood_group=profile.blood_group.value if hasattr(profile.blood_group, "value") else str(profile.blood_group),
-        emergency_contact_name=profile.emergency_contact_name,
-        emergency_contact_phone=profile.emergency_contact_phone,
+        emergency_contact_name=decrypt(profile.emergency_contact_name) if profile.emergency_contact_name else None,
+        emergency_contact_phone=decrypt(profile.emergency_contact_phone) if profile.emergency_contact_phone else None,
     )
 
     return ApiResponse[ProfileResponse](

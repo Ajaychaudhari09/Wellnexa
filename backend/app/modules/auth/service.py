@@ -9,6 +9,7 @@ from sqlalchemy import select, and_
 from app.core.config import settings
 from app.core.security import verify_password, get_password_hash, create_access_token, create_refresh_token, decode_token
 from app.core.exceptions import UnauthorizedException, ConflictException, NotFoundException, ForbiddenException
+from app.core.encryption import encrypt, decrypt
 from app.models.user import User, Role, RoleEnum
 from app.models.profile import Profile
 from app.models.token import RefreshToken
@@ -60,10 +61,13 @@ class AuthService:
         query = select(User).where(User.email == req.email.lower().strip())
         result = await self.db.execute(query)
         if result.scalar_one_or_none():
-            raise ConflictException(f"User with email '{req.email}' already exists")
+            raise ConflictException("An account with this email already exists")
 
-        # Determine role (default to PATIENT, allow DOCTOR/ADMIN if specified)
-        role = await self.get_or_create_role(req.role or RoleEnum.PATIENT)
+        # Public registration may create patients only. Doctor approval and admin
+        # creation belong to separate privileged workflows.
+        if req.role not in (None, RoleEnum.PATIENT):
+            raise ForbiddenException("Public registration is limited to patient accounts")
+        role = await self.get_or_create_role(RoleEnum.PATIENT)
 
         # Create user
         hashed_pwd = get_password_hash(req.password)
@@ -80,8 +84,8 @@ class AuthService:
         # Create profile
         profile = Profile(
             user_id=new_user.id,
-            first_name=req.first_name.strip(),
-            last_name=req.last_name.strip(),
+            first_name=encrypt(req.first_name.strip()),
+            last_name=encrypt(req.last_name.strip()),
         )
         self.db.add(profile)
         new_user.profile = profile
@@ -113,7 +117,6 @@ class AuthService:
                 resource="auth",
                 ip_address=ip_address,
                 user_agent=user_agent,
-                details={"attempted_email": req.email},
             )
             raise UnauthorizedException("Invalid email or password")
 
@@ -157,8 +160,8 @@ class AuthService:
             is_active=user.is_active,
             is_verified=user.is_verified,
             roles=role_names,
-            first_name=user.profile.first_name if user.profile else None,
-            last_name=user.profile.last_name if user.profile else None,
+            first_name=decrypt(user.profile.first_name) if user.profile else None,
+            last_name=decrypt(user.profile.last_name) if user.profile else None,
         )
 
         token_response = TokenResponse(
@@ -178,8 +181,8 @@ class AuthService:
             if payload.get("type") != "refresh":
                 raise UnauthorizedException("Invalid token type for refresh")
             user_id = uuid.UUID(payload.get("sub"))
-        except Exception as exc:
-            raise UnauthorizedException(f"Invalid refresh token: {str(exc)}")
+        except Exception:
+            raise UnauthorizedException("Invalid refresh token")
 
         token_hash = hashlib.sha256(raw_refresh_token.encode()).hexdigest()
         query = select(RefreshToken).where(

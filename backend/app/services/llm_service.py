@@ -1,7 +1,7 @@
 """LLM + embeddings via OpenAI SDK."""
-import os
 from typing import List, Optional
 from openai import OpenAI
+from app.core.config import settings
 
 _client: Optional[OpenAI] = None
 
@@ -9,18 +9,20 @@ _client: Optional[OpenAI] = None
 def client() -> OpenAI:
     global _client
     if _client is None:
-        _client = OpenAI(api_key=os.getenv("OPENAI_API_KEY", ""))
+        if not settings.OPENAI_API_KEY:
+            raise RuntimeError("OPENAI_API_KEY must be set to use AI features")
+        _client = OpenAI(api_key=settings.OPENAI_API_KEY)
     return _client
 
 
 def embed(text: str) -> List[float]:
-    model = os.getenv("EMBEDDING_MODEL", "text-embedding-3-small")
+    model = settings.EMBEDDING_MODEL
     resp = client().embeddings.create(model=model, input=text)
     return resp.data[0].embedding
 
 
 def chat(system: str, user: str, temperature: float = 0.2) -> str:
-    model = os.getenv("LLM_MODEL", "gpt-4o-mini")
+    model = settings.LLM_MODEL
     resp = client().chat.completions.create(
         model=model,
         messages=[{"role": "system", "content": system}, {"role": "user", "content": user}],

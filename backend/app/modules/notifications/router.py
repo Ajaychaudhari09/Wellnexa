@@ -1,5 +1,6 @@
 import uuid
 from typing import List, Optional
+from datetime import datetime, timezone
 from fastapi import APIRouter, Depends, Query, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -55,6 +56,22 @@ async def mark_notification_read(
     notif = await service.mark_as_read(current_user.id, notification_id)
     payload = NotificationResponse.model_validate(notif)
     return ApiResponse[NotificationResponse](success=True, message="Notification marked as read", data=payload)
+
+@router.patch("/{notification_id}/read", response_model=ApiResponse[NotificationResponse], status_code=status.HTTP_200_OK)
+async def mark_notification_read_patch(
+    notification_id: uuid.UUID,
+    current_user: User = Depends(get_current_active_user),
+    db: AsyncSession = Depends(get_db),
+) -> ApiResponse[NotificationResponse]:
+    """REST-style alias for marking a single notification as read."""
+    service = NotificationService(db)
+    notif = await service.mark_as_read(current_user.id, notification_id)
+    return ApiResponse[NotificationResponse](success=True, message="Notification marked as read", data=NotificationResponse(
+        id=notif.id, user_id=notif.user_id, notification_type=notif.notification_type.value,
+        title=notif.title, body=notif.body, is_read=notif.is_read, action_url=notif.action_url,
+        reference_id=notif.reference_id, reference_type=notif.reference_type,
+        priority=notif.priority.value, read_at=notif.read_at or datetime.now(timezone.utc), created_at=notif.created_at,
+    ))
 
 @router.post("/mark-all-read", response_model=ApiResponse[dict], status_code=status.HTTP_200_OK)
 async def mark_all_notifications_read(

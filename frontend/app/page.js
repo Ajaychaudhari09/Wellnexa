@@ -9,7 +9,6 @@ export default function Home() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [name, setName] = useState('');
-  const [role, setRole] = useState('patient');
   const [err, setErr] = useState('');
   const [loading, setLoading] = useState(false);
 
@@ -22,7 +21,8 @@ export default function Home() {
         api.setToken(data.access_token);
         router.push('/dashboard');
       } else {
-        await api.register({ email, password, full_name: name, role });
+        const parts = name.trim().split(/\s+/);
+        await api.register({ email, password, first_name: parts[0], last_name: parts.slice(1).join(' ') || parts[0] });
         setMode('login');
       }
     } catch (e) { setErr(e.message); }
@@ -43,12 +43,6 @@ export default function Home() {
             <>
               <label className="label">Full name</label>
               <input className="input" value={name} onChange={e => setName(e.target.value)} required />
-              <label className="label">Role</label>
-              <select className="input" value={role} onChange={e => setRole(e.target.value)}>
-                <option value="patient">Patient</option>
-                <option value="doctor">Doctor</option>
-                <option value="admin">Admin</option>
-              </select>
             </>
           )}
           <label className="label">Email</label>

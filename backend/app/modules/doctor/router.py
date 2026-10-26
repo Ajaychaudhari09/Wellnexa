@@ -1,10 +1,12 @@
 import uuid
-from typing import List, Optional
-from fastapi import APIRouter, Depends, Query, Header, status
+from typing import List
+from fastapi import APIRouter, Depends, Query, status
 from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy import select
 
 from app.core.database import get_db
-from app.core.deps import get_current_active_user, get_optional_current_user
+from app.core.deps import get_current_active_user, require_roles
+from app.models.user import RoleEnum
 from app.schemas.common import ApiResponse
 from app.models.user import User
 from app.modules.doctor.schemas import (
@@ -56,10 +58,12 @@ async def revoke_access_grant(
 async def get_patient_summary_for_doctor(
     patient_id: uuid.UUID,
     token: str = Query(..., description="Time-bound access token from patient grant"),
+    current_user: User = Depends(require_roles(RoleEnum.DOCTOR)),
     db: AsyncSession = Depends(get_db),
 ) -> ApiResponse[PatientClinicalSummaryResponse]:
     """Doctor portal: view consolidated patient profile, vitals, medications, and confirmed reports."""
     service = DoctorService(db)
+    await service.validate_doctor_grant(token, patient_id, current_user.id)
     summary = await service.get_patient_clinical_summary(access_token=token, patient_id=patient_id)
     return ApiResponse[PatientClinicalSummaryResponse](success=True, message="Patient summary retrieved", data=summary)
 
@@ -67,33 +71,27 @@ async def get_patient_summary_for_doctor(
 async def create_consultation_note(
     patient_id: uuid.UUID,
     req: DoctorConsultationCreateRequest,
-    token: Optional[str] = Query(None, description="Access token if accessing via link"),
-    current_user: Optional[User] = Depends(get_optional_current_user),
+    token: str = Query(..., description="Patient access token"),
+    current_user: User = Depends(require_roles(RoleEnum.DOCTOR)),
     db: AsyncSession = Depends(get_db),
 ) -> ApiResponse[DoctorConsultationResponse]:
     """Record clinical consultation observations and action plan, syncing to patient timeline."""
     service = DoctorService(db)
-    # Validate token if not direct logged-in doctor
-    if token:
-        await service.validate_grant(token, patient_id)
-
-    doc_id = current_user.id if current_user else None
-    consultation = await service.create_consultation_note(patient_id=patient_id, req=req, doctor_id=doc_id)
+    await service.validate_doctor_grant(token or "", patient_id, current_user.id)
+    consultation = await service.create_consultation_note(patient_id=patient_id, req=req, doctor_id=current_user.id)
     payload = DoctorConsultationResponse.model_validate(consultation)
     return ApiResponse[DoctorConsultationResponse](success=True, message="Consultation note saved", data=payload)
 
 @router.get("/doctor/patient/{patient_id}/consultations", response_model=ApiResponse[List[DoctorConsultationResponse]], status_code=status.HTTP_200_OK)
 async def get_patient_consultations(
     patient_id: uuid.UUID,
-    token: Optional[str] = Query(None, description="Access token"),
-    current_user: Optional[User] = Depends(get_optional_current_user),
+    token: str = Query(..., description="Patient access token"),
+    current_user: User = Depends(require_roles(RoleEnum.DOCTOR)),
     db: AsyncSession = Depends(get_db),
 ) -> ApiResponse[List[DoctorConsultationResponse]]:
     """Retrieve consultation notes for a patient."""
     service = DoctorService(db)
-    if token:
-        await service.validate_grant(token, patient_id)
-
-    consultations = await service.get_patient_consultations(patient_id)
+    await service.validate_doctor_grant(token or "", patient_id, current_user.id)
+    consultations = await service.get_patient_consultations(patient_id, current_user.id)
     payload = [DoctorConsultationResponse.model_validate(c) for c in consultations]
     return ApiResponse[List[DoctorConsultationResponse]](success=True, message="Consultations retrieved", data=payload)

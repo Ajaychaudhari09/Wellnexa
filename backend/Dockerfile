@@ -7,6 +7,10 @@ ENV PYTHONUNBUFFERED=1 \
 
 WORKDIR /app
 
+# The app imports the repository-level ai package; copy it into the image.
+COPY ai /ai
+ENV PYTHONPATH=/:/app
+
 # Install system dependencies
 RUN apt-get update && apt-get install -y --no-install-recommends \
     build-essential \
@@ -19,6 +23,9 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 # Install python dependencies
 COPY requirements.txt /app/
 RUN pip install --no-cache-dir -r requirements.txt
+
+COPY alembic.ini /app/alembic.ini
+COPY alembic /app/alembic
 
 COPY . /app/
 

@@ -1,134 +1,89 @@
-# WellNexa AI — Cross-Platform Personal Healthcare and Wellness Management System
+# WellNexa AI
 
-[![FastAPI](https://img.shields.io/badge/FastAPI-0.111.0-009688.svg?style=flat&logo=fastapi)](https://fastapi.tiangolo.com)
-[![Flutter](https://img.shields.io/badge/Flutter-3.19.0-02569B.svg?style=flat&logo=flutter)](https://flutter.dev)
-[![PostgreSQL](https://img.shields.io/badge/PostgreSQL-16_with_pgvector-336791.svg?style=flat&logo=postgresql)](https://www.postgresql.org)
-[![Python](https://img.shields.io/badge/Python-3.12-3776AB.svg?style=flat&logo=python)](https://python.org)
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-
-**WellNexa AI** is a production-grade, cross-platform personal healthcare and wellness management system designed for comprehensive health tracking, medical document extraction, medication management, and evidence-grounded AI assistance.
-
----
-
-## 🌟 Key Features
-
-1. **Unified Health Profile & Vitals**: Complete vitals tracking with automatic BMI calculations, known allergies, chronic conditions, and lifestyle profiles.
-2. **Centralized Health Timeline**: Single chronological audit trail uniting vitals, lab reports, prescriptions, workouts, and consultations.
-3. **Medical Report OCR & Human Confirmation**: Complete Blood Count (CBC), Fasting/PP Glucose, Lipid Profile, and Thyroid Profile extractions with physiological reference range boundary flags (`NORMAL`, `LOW`, `HIGH`, `CRITICAL`).
-4. **Medical Report Analyzer & Delta Comparisons**: Plain-language clinical explanations and historical delta comparisons across consecutive reports.
-5. **Prescription & Medicine Manager**: Inventory stock tracking, dose logging (`TAKEN`, `MISSED`, `SKIPPED`), and dynamic Adherence Score calculations (`EXCELLENT`, `GOOD`, `NEEDS_ATTENTION`).
-6. **Central Smart Reminder Engine**: Multi-category reminder scheduling (`MEDICINE`, `WATER`, `APPOINTMENT`, etc.) with user quiet-hours enforcement.
-7. **Nutrition & Meal Tracking**: Nutritional reference database with automatic macro calculation and AI Meal Planner with diet preferences (`VEGETARIAN`, `KETO`, `JAIN`, etc.).
-8. **Fitness & Daily Activity**: Workout tracking, step counts, sleep quality ratings, hydration, and habit check-in streaks.
-9. **Mental Wellness Journal**: 1-5 mood rating, gratitude reflection, and AI Crisis Guardrails attaching 24/7 verified crisis helplines.
-10. **Grounded AI Health Assistant (RAG)**: Multi-turn chat grounded in active patient baseline and WHO/ICMR clinical guidelines with emergency triage redirection.
-11. **Doctor / Healthcare Professional Portal**: Time-bound access grants (1 hr to 30 days) with granular scope controls, instant kill-switch revocation, and physician consultation notes.
-12. **Consent & Privacy Center**: Granular AI/research consent toggles and one-click JSON health data export archive (GDPR/HIPAA).
-13. **Intelligent Health Dashboard**: High-performance home aggregation endpoint powering Flutter widgets.
-14. **360-Degree AI Health Snapshot**: Multi-domain synthesis highlighting positive trends, areas for attention, and prioritized next best actions.
-15. **In-App Notification Center**: Real-time unread badge counters and multi-channel dispatcher abstraction.
-16. **Immutable Audit Logging**: Write-only append security log for compliance and patient transparency.
-
----
-
-## 🚀 Quick Start Guide
-
-### 1. Start Infrastructure via Docker Compose
-```bash
-docker compose up -d
-```
-
-### 2. Run Database Migrations
-```bash
-cd backend
-alembic upgrade head
-```
-
-### 3. Seed Demonstration Data
-```bash
-python -m app.db.seed_demo_data
-```
-- **Demo Patient**: `patient@wellnexa.ai` / `Password123!`
-- **Demo Doctor**: `doctor@wellnexa.ai` / `Password123!`
-
-### 4. Run Backend API Server
-```bash
-uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
-```
-Interactive API documentation: `http://localhost:8000/docs`
-
-### 5. Run Next.js Frontend (Website)
-```bash
-cd frontend
-npm install
-npm run dev
-```
-Open `http://localhost:3000`. The frontend proxies `/api/*` to the backend at `http://127.0.0.1:8000`.
-
-> Note: A legacy Flutter mobile client exists under `apps/mobile` and a Vite web client under `apps/web`; the supported website for this spec is the Next.js app in `/frontend`.
-
----
-
-## 🧪 Running Automated Test Suite
-
-```bash
-cd backend
-pytest -v
-```
-
----
-
-## 📖 Demonstration & Viva Guide
-For a step-by-step 10-minute project presentation script, refer to [`docs/DEMO_WALKTHROUGH.md`](docs/DEMO_WALKTHROUGH.md).
-
+WellNexa is a health education and personal health management application. It does not diagnose, treat, or prescribe. AI content must be treated as educational and reviewed with a qualified healthcare professional.
 
 ## Architecture
 
-Modular monolith: Next.js (App Router) frontend -> FastAPI backend -> PostgreSQL + pgvector. A separate Python worker process runs an asyncio loop for reminders, emails, and grant expiry. OCR via Tesseract (pytesseract + pdf2image), AI via OpenAI SDK (key from env), encryption via AES-GCM (cryptography).
+- Next.js 14 App Router frontend (`frontend`)
+- FastAPI API (`backend/app`)
+- PostgreSQL 16 with pgvector, SQLAlchemy, and Alembic
+- Separate asyncio worker process (`python -m app.worker`)
+- Tesseract OCR and Poppler PDF rendering in the backend image
+- OpenAI SDK for configured AI calls; SMTP through Python `smtplib`
 
-## Setup from zero (docker-compose)
+## Prerequisites
 
-`ash
-cp .env.example .env
-docker compose up -d --build
-`
+Install Docker Desktop with Compose and ensure `docker` is on PATH for the PostgreSQL stack. Configure an OpenAI API key and SMTP credentials for provider features. The local API can also use an `aiosqlite` URL for development, but production configuration is PostgreSQL. Docker was unavailable during this verification; the configured local SQLite database and API health check were reachable.
 
-Services: postgres (pgvector), api (runs alembic upgrade head then uvicorn), worker (asyncio loop), web (Next.js).
+## First startup
 
-## Environment variables
+1. Copy `.env.example` to `.env`.
+2. Replace every `CHANGE_ME` value. Use strong random values for `SECRET_KEY`, the database password, and `ENCRYPTION_KEY`. Generate the encryption key with:
 
-See .env.example. Key: DATABASE_URL, SYNC_DATABASE_URL, SECRET_KEY, OPENAI_API_KEY, LLM_PROVIDER, LLM_MODEL, EMBEDDING_MODEL, ENCRYPTION_KEY, SMTP_HOST/PORT/USER/PASSWORD/FROM, UPLOAD_DIR.
+   ```powershell
+   python -c "import base64,secrets; print(base64.b64encode(secrets.token_bytes(32)).decode())"
+   ```
 
-## Seed data
+3. Set a valid `OPENAI_API_KEY`, `LLM_MODEL`, and `EMBEDDING_MODEL`. SMTP settings accept either `EMAIL_HOST`, `EMAIL_PORT`, `EMAIL_SECURE`, `EMAIL_USER`, `EMAIL_PASS`, `EMAIL_FROM_NAME`, `EMAIL_FROM_ADDRESS`, `SUPPORT_EMAIL` or their `SMTP_*` aliases. For Gmail on port 587, use `EMAIL_SECURE=false`; the client still upgrades with STARTTLS before authentication. Keep the app password in your local ignored `.env` file and rotate it if it has been shared.
+4. Start the four services:
 
-`ash
-docker compose exec api python -m app.db.seed_demo_data
-`
+   ```powershell
+   docker compose up --build
+   ```
 
-## Migrations
+The API service runs `alembic upgrade head` before Uvicorn starts. PostgreSQL data persists in the `postgres_data` volume; uploads are stored under `storage/uploads`. The API liveness check is `http://localhost:8000/health`; its database health check is `http://localhost:8000/api/v1/health`. The web UI is `http://localhost:3000` and API docs are `http://localhost:8000/docs`.
 
-`ash
-docker compose exec api alembic upgrade head
-`
+Compose starts a real OpenAI client configuration; AI-dependent operations fail with a provider error if the key or model access is invalid. SMTP delivery similarly requires a reachable configured server. The app does not silently substitute fake provider responses.
 
-## Worker
+## Local development
 
-Runs as worker service. Locally: cd backend && python -m app.worker
+With PostgreSQL running and `.env` configured, in one terminal:
 
-## SMTP and LLM configuration
+```powershell
+cd backend
+python -m pip install -r requirements.txt
+alembic upgrade head
+uvicorn app.main:app --reload --port 8000
+```
 
-Set SMTP_* to enable email; otherwise sends are skipped/logged (no health data).
-Set LLM_PROVIDER=openai and OPENAI_API_KEY for real LLM; default mock.
-RAG ingestion: cd backend && python -m app.services.rag_ingest
+In another terminal:
+
+```powershell
+cd backend
+python -m app.worker
+```
+
+And for the frontend:
+
+```powershell
+cd frontend
+npm ci
+npm run dev
+```
+
+## Database and data
+
+Migrations live in `backend/alembic/versions`. To apply them manually, run `alembic upgrade head` from `backend`. There is no automatic demo patient seed during API startup. The existing `app.db.seed_demo_data` script contains synthetic health data and should only be used in an isolated development database.
 
 ## Tests
 
-`ash
-python scripts/run_tests.py
-`
+Backend unit/API suite (dependencies include the test client and SQLite driver):
 
-Playwright E2E: cd frontend && npx playwright install && npm run test:e2e
+```powershell
+cd backend
+pytest -q
+```
 
-## Deployment notes
+Frontend production build:
 
-HTTPS in production via reverse proxy; secure cookies and CORS allow-list. Rotate encryption key via re-encryption script.
+```powershell
+cd frontend
+npm ci
+npm run build
+```
+
+Playwright E2E is available with `npm run test:e2e` after installing browsers and starting the API and web app. Backend tests use in-memory SQLite; SMTP tests mock the transport and do not send email. These checks do not prove PostgreSQL, real SMTP delivery, scanned-document OCR accuracy, or external LLM integration. See `FEATURE_STATUS.md` for tested behavior and gaps.
+
+## Known implementation limits
+
+The repository has feature modules and API routes beyond the current Next.js screens, but the full pasted 16-step acceptance suite is not complete. In particular, account email verification/reset, complete private-data encryption, provider-backed RAG citations, OCR background processing, reminder delivery guarantees, food-data ingestion, and comprehensive feature UI/tests require further work. Review `FEATURE_STATUS.md`; do not treat previously marked features as proven by real service tests.

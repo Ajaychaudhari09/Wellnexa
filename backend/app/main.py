@@ -1,4 +1,5 @@
 from contextlib import asynccontextmanager
+import os
 from fastapi import FastAPI, Request, status
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
@@ -37,16 +38,9 @@ if hasattr(sys.stdout, "reconfigure"):
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     """Application startup and shutdown lifespan events."""
-    print(f"[WellNexa AI] Initializing backend services in {settings.ENVIRONMENT} mode...")
-    from app.core.database import engine, Base
-    import app.models  # ensure models are loaded
-    async with engine.begin() as conn:
-        await conn.run_sync(Base.metadata.create_all)
-    from app.db.seed_demo_data import seed_all
-    try:
-        await seed_all()
-    except Exception as e:
-        print(f"Seed note: {e}")
+    import logging
+    logging.getLogger("uvicorn.access").addFilter(lambda record: "health" not in record.getMessage().lower())
+    # Schema changes are managed by Alembic before the API process starts.
     yield
     print("[WellNexa AI] Shutting down backend services...")
 
@@ -80,10 +74,20 @@ async def wellnexa_exception_handler(request: Request, exc: WellNexaException):
 
 @app.exception_handler(Exception)
 async def generic_exception_handler(request: Request, exc: Exception):
+    # Exception details may contain request data or database parameters.
     return JSONResponse(
         status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-        content={"success": False, "message": "An internal server error occurred.", "data": None, "errors": [str(exc)]},
+        content={"success": False, "message": "An internal server error occurred.", "data": None, "errors": ["Internal server error"]},
     )
+
+@app.get("/health", include_in_schema=False)
+async def simple_health():
+    """Liveness endpoint used by containers and local setup checks."""
+    return {"status": "ok"}
+
+@app.get(f"{settings.API_V1_STR}/health/live", include_in_schema=False)
+async def live_health():
+    return {"status": "ok"}
 
 # Include API Domain Routers
 app.include_router(health_router, prefix=settings.API_V1_STR)

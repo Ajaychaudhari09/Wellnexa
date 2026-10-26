@@ -9,7 +9,9 @@ async def test_security_headers_present_on_all_responses(client: AsyncClient):
     assert resp.headers.get("X-Frame-Options") == "DENY"
     assert resp.headers.get("X-Content-Type-Options") == "nosniff"
     assert resp.headers.get("X-XSS-Protection") == "1; mode=block"
-    assert "max-age=" in resp.headers.get("Strict-Transport-Security", "")
+    assert "Strict-Transport-Security" not in resp.headers
+    tls_resp = await client.get("/", headers={"x-forwarded-proto": "https"})
+    assert "max-age=" in tls_resp.headers.get("Strict-Transport-Security", "")
     assert "default-src" in resp.headers.get("Content-Security-Policy", "")
 
 @pytest.mark.asyncio

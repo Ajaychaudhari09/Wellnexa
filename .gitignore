@@ -13,7 +13,6 @@ dist/
 downloads/
 eggs/
 .eggs/
-lib/
 lib64/
 parts/
 sdist/
@@ -82,4 +81,7 @@ apps/web/dist/
 frontend/node_modules/
 frontend/.next/
 frontend/out/
+frontend/playwright-report/
+frontend/test-results/
+!frontend/lib/
 

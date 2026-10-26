@@ -3,6 +3,7 @@ from datetime import datetime, date, timezone
 from typing import List, Optional, Dict, Any
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select, and_, desc
+from app.core.encryption import decrypt
 
 from app.models.user import User
 from app.models.profile import Profile
@@ -50,8 +51,8 @@ class DashboardService:
         # 1. Profile Header
         prof_res = await self.db.execute(select(Profile).where(Profile.user_id == user_id))
         prof = prof_res.scalar_one_or_none()
-        first_name = prof.first_name if prof else "WellNexa"
-        last_name = prof.last_name if prof else "User"
+        first_name = decrypt(prof.first_name) if prof else "WellNexa"
+        last_name = decrypt(prof.last_name) if prof else "User"
         gender = prof.gender.value if prof and prof.gender else None
         blood = prof.blood_group.value if prof and prof.blood_group else None
 

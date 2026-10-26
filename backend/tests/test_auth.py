@@ -95,7 +95,7 @@ async def test_rbac_doctor_route_access(client: AsyncClient):
     doc_attempt = await client.get("/api/v1/auth/doctor-only", headers={"Authorization": f"Bearer {p_token}"})
     assert doc_attempt.status_code == 403
 
-    # Register Doctor
+    # Public registration must never permit self-assigned doctor/admin access.
     doc_payload = {
         "email": "doctor@example.com",
         "password": "Password123!",
@@ -103,10 +103,9 @@ async def test_rbac_doctor_route_access(client: AsyncClient):
         "last_name": "Tor",
         "role": "DOCTOR"
     }
-    await client.post("/api/v1/auth/register", json=doc_payload)
-    d_login = await client.post("/api/v1/auth/login", json={"email": "doctor@example.com", "password": "Password123!"})
-    d_token = d_login.json()["data"]["access_token"]
+    doctor_register = await client.post("/api/v1/auth/register", json=doc_payload)
+    assert doctor_register.status_code == 403
 
-    # Doctor accessing doctor endpoint should be 200 OK
-    doc_success = await client.get("/api/v1/auth/doctor-only", headers={"Authorization": f"Bearer {d_token}"})
-    assert doc_success.status_code == 200
+    admin_payload = {**doc_payload, "email": "admin@example.com", "role": "ADMIN"}
+    admin_register = await client.post("/api/v1/auth/register", json=admin_payload)
+    assert admin_register.status_code == 403

@@ -6,7 +6,8 @@ from app.core.config import settings
 # Async database engine
 engine = create_async_engine(
     settings.DATABASE_URL,
-    echo=settings.DEBUG,
+    # SQL parameters can contain private health data; never log statements.
+    echo=False,
     future=True,
     pool_pre_ping=True,
 )

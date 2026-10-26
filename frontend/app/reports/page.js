@@ -19,7 +19,7 @@ export default function Reports() {
     try {
       const doc = await api.uploadDocument(file);
       const report = await api.processReport(doc.id);
-      setText(report?.raw_text || report?.extracted_text || JSON.stringify(report));
+      setText(report?.extractions?.map(x => `${x.test_name}: ${x.detected_value} ${x.unit || ''}`).join('\n') || 'OCR completed. Review the detected report fields in saved reports.');
       api.reports().then(setList).catch(() => {});
     } catch (err) { setText(err.message); }
   }
@@ -34,7 +34,7 @@ export default function Reports() {
           <button className="btn" type="submit" style={{ marginLeft: '.5rem' }}>Upload & OCR</button>
         </form>
         {text && <div className="card"><h3>Extracted text</h3><pre style={{ whiteSpace: 'pre-wrap' }}>{text}</pre></div>}
-        <div className="card"><h3>Saved reports</h3><ul>{list.map((r, i) => <li key={i}>{r.id}</li>)}</ul></div>
+        <div className="card"><h3>Saved reports</h3><ul>{list.map((r, i) => <li key={i}>{r.report_type} — {r.status} ({r.extractions?.length || 0} values)</li>)}</ul></div>
       </div>
     </div>
   );

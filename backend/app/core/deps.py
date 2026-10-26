@@ -31,8 +31,8 @@ async def get_current_user(
         if not user_id_str:
             raise UnauthorizedException("Token payload missing subject identifier")
         user_id = uuid.UUID(user_id_str)
-    except (jwt.PyJWTError, ValueError) as exc:
-        raise UnauthorizedException(f"Invalid or expired token: {str(exc)}")
+    except (jwt.PyJWTError, ValueError):
+        raise UnauthorizedException("Invalid or expired token")
 
     query = select(User).where(User.id == user_id)
     result = await db.execute(query)

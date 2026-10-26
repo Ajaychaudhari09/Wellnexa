@@ -6,7 +6,7 @@ from app.models.doctor import AccessScopeEnum, GrantStatusEnum
 
 # ----------------- Access Grants -----------------
 class CreateAccessGrantRequest(BaseModel):
-    doctor_email: Optional[str] = None
+    doctor_email: str = Field(..., min_length=3, max_length=255)
     access_scope: AccessScopeEnum = AccessScopeEnum.FULL_ACCESS
     duration_hours: int = Field(default=24, ge=1, le=720) # 1 hr up to 30 days
     notes: Optional[str] = Field(None, max_length=255)

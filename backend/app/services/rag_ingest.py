@@ -5,7 +5,7 @@ import re
 from sqlalchemy import create_engine, text
 from app.services.llm_service import embed
 
-DOCS_DIR = os.getenv("RAG_DOCS_DIR", "rag_docs")
+DOCS_DIR = os.getenv("RAG_DOCS_DIR", os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(__file__))), "rag_docs"))
 SYNC_DB_URL = os.getenv("SYNC_DATABASE_URL", "postgresql://wellnexa:wellnexa_secure_password@localhost:5432/wellnexa_db")
 
 
@@ -59,7 +59,9 @@ def main():
             with engine.begin() as conn:
                 conn.execute(text("INSERT INTO rag_chunks (doc_title, source_url, chunk, embedding) VALUES (:t,:u,:c,:e)"),
                              {"t": title, "u": url, "c": c, "e": vec})
-    print(f"Ingested {len(files)} docs")
+    if len(files) < 10:
+        raise RuntimeError(f"Expected at least 10 knowledge documents, found {len(files)}")
+    print(f"Ingested {len(files)} documents")
 
 
 if __name__ == "__main__":

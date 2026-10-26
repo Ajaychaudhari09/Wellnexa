@@ -3,6 +3,7 @@ from datetime import datetime, timezone
 from typing import List, Optional, Dict, Any
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select, and_, desc
+from app.core.encryption import decrypt
 
 from app.models.profile import Profile
 from app.models.health import HealthMetric, MetricTypeEnum
@@ -29,7 +30,7 @@ class SnapshotService:
         prof_res = await self.db.execute(select(Profile).where(Profile.user_id == user_id))
         prof = prof_res.scalar_one_or_none()
         profile_data = {
-            "first_name": prof.first_name if prof else "Patient",
+            "first_name": decrypt(prof.first_name) if prof else "Patient",
             "gender": prof.gender.value if prof and prof.gender else None,
         }
 
